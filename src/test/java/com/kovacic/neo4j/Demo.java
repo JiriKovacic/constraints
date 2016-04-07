@@ -12,6 +12,9 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 public class Demo {
 
+    /**
+     * Test class
+     */
     @Test
     public void firstTest() {
         GraphDatabaseService database = new TestGraphDatabaseFactory().newImpermanentDatabase();
