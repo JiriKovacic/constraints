@@ -16,6 +16,8 @@ public class RelationshipTemplate implements IRelationshipTemplate {
     protected String update;
     protected Boolean icFinal;
 
+    public RelationshipTemplate() {}
+
     public RelationshipTemplate(String relationshipType, List<String> relationshipProperties,
                         String icName, String enable, String validation,
                         String delete, String update, Boolean icFinal)

@@ -10,6 +10,7 @@ import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 
 /**
@@ -18,14 +19,69 @@ import java.util.LinkedList;
 public class ICTests {
 
     @Test
-    public void SchemaEnforcement() {
+    public void schemaEnforcement() {
         SchemaConfiguration configuration = new SchemaConfiguration();
+        // Choosing configuration type
         Configuration nodeConf = configuration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
+        Configuration relationshipConf = configuration.configurationFactory.getConfiguration(ConfigurationType.RelationshipConfiguration);
+        // Defining integrity constraints for nodes
         nodeConf.addNodeTemplate(new NodeTemplate());
         NodeTemplate constraint = new NodeTemplate("User", "email", "icUnique", "validate", "deferred", "restrict", "restrict", false);
-
-
         nodeConf.addNodeTemplate(constraint);
+        // Defining integrity constraints for relationships
+        relationshipConf.addRelationshipTemplate(new RelationshipTemplate());
+
+        // Register configuration to Schema and start enforcement
+        configuration.startEnforcing(nodeConf, relationshipConf);
+
+    }
+
+    @Test
+    public void uniqueTest()
+    {
+        GraphDatabaseService database = new TestGraphDatabaseFactory().newImpermanentDatabase();
+
+        database.registerTransactionEventHandler(new TransactionEventHandler<Void>() {
+            @Override
+            public Void beforeCommit(TransactionData transactionData) throws Exception {
+
+                Iterator<Node> iterator = transactionData.createdNodes().iterator();
+
+
+                while(iterator.hasNext()) {
+                    Node node = iterator.next();
+                    Object name = node.getProperty("name");
+                    System.out.println("Node id is " + node.getId() + " name " + name);
+                }
+                return null;
+            }
+
+            @Override
+            public void afterCommit(TransactionData transactionData, Void aVoid) {
+                System.out.println("Committed");
+            }
+
+            @Override
+            public void afterRollback(TransactionData transactionData, Void aVoid) {
+                System.out.println("Rollbacked");
+            }
+        });
+
+        try (Transaction tx = database.beginTx()) {
+
+            Node michal = database.createNode();
+            michal.setProperty("name", "Michal");
+
+            Node jiri = database.createNode();
+            jiri.setProperty("name", "Jiri");
+
+            michal.createRelationshipTo(jiri, DynamicRelationshipType.withName("FRIEND"));
+
+            tx.success();
+        } catch (Exception e) {
+            System.out.println("Failed for some reason: " + e.getMessage());
+            e.printStackTrace();
+        }
 
     }
 }

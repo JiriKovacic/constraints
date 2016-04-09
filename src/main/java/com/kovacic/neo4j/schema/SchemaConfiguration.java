@@ -13,4 +13,16 @@ public class SchemaConfiguration implements ISchemaConfiguration {
         return null;
     }
 
+    @Override
+    public void startEnforcing(Configuration nodeConf, Configuration relConf) {
+        //
+        if(nodeConf != null)
+        {
+
+        }
+        if (relConf != null)
+        {
+
+        }
+    }
 }

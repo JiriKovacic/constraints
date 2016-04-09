@@ -8,5 +8,6 @@ import java.util.List;
  */
 public interface ISchemaConfiguration {
     JSONObject getAllConfiguration();
+    void startEnforcing(Configuration nodeConf, Configuration relConf);
 
 }

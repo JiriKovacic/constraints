@@ -10,12 +10,7 @@ import java.util.List;
  */
 public class NodeConfiguration extends Configuration {
 
-    private List<NodeTemplate> nodeRecords = new LinkedList<>();
 
-    public List<NodeTemplate> getNodeRecords()
-    {
-        return nodeRecords;
-    }
 
     @Override
     public Boolean addNodeTemplate(NodeTemplate template) {

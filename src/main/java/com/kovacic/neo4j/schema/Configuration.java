@@ -2,10 +2,32 @@ package com.kovacic.neo4j.schema;
 
 import org.json.JSONObject;
 
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  * Created by Jirka on 9. 4. 2016.
  */
 public abstract class Configuration implements IConfiguration {
+
+    private List<NodeTemplate> nodeRecords;
+    private List<RelationshipTemplate> relationshipRecords;
+
+    public Configuration()
+    {
+        nodeRecords = new LinkedList<>();
+        relationshipRecords = new LinkedList<>();
+    }
+
+    @Override
+    public List<RelationshipTemplate> getRelationshipRecords() {
+        return relationshipRecords;
+    }
+
+    public List<NodeTemplate> getNodeRecords()
+    {
+        return nodeRecords;
+    }
 
     @Override
     public JSONObject getConfiguration() {
@@ -15,11 +37,12 @@ public abstract class Configuration implements IConfiguration {
     @Override
     public Boolean addNodeTemplate(NodeTemplate template) {
         System.out.println("Configuration fires " + template.icName);
-        return null;
+
+        return this.nodeRecords.add(template);
     }
 
     @Override
     public Boolean addRelationshipTemplate(RelationshipTemplate template) {
-        return null;
+        return this.relationshipRecords.add(template);
     }
 }
