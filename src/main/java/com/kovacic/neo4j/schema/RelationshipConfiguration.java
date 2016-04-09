@@ -5,9 +5,10 @@ import org.json.JSONObject;
 /**
  * Created by Jirka on 9. 4. 2016.
  */
-public class RelationshipConfiguration implements IRelationshipConfiguration {
+public class RelationshipConfiguration extends Configuration {
+
     @Override
-    public JSONObject getRelationshipConfiguration() {
+    public Boolean addRelationshipTemplate(RelationshipTemplate template) {
         return null;
     }
 }

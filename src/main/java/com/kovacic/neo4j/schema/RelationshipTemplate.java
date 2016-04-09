@@ -16,6 +16,20 @@ public class RelationshipTemplate implements IRelationshipTemplate {
     protected String update;
     protected Boolean icFinal;
 
+    public RelationshipTemplate(String relationshipType, List<String> relationshipProperties,
+                        String icName, String enable, String validation,
+                        String delete, String update, Boolean icFinal)
+    {
+        this.relationshipType = relationshipType;
+        this.relationshipProperties = relationshipProperties;
+        this.icName = icName;
+        this.enable = enable;
+        this.validation = validation;
+        this.delete = delete;
+        this.update = update;
+        this.icFinal = icFinal;
+    }
+
     @Override
     public Boolean addRelationshipConstraint() {
         return null;

@@ -8,6 +8,5 @@ import java.util.List;
  */
 public interface ISchemaConfiguration {
     JSONObject getAllConfiguration();
-    Boolean addNodeConfiguration(NodeTemplate template);
-    Boolean addRelationshipConfiguration(RelationshipTemplate template);
+
 }
