@@ -34,7 +34,7 @@ public class ICTests {
         // configuration.registerConfiguration(null, relationshipConf);
         // configuration.registerConfiguration(nodeConf, null);
 
-
+        configuration.getAllConfiguration();
     }
 
     @Test

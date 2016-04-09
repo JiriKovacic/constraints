@@ -24,13 +24,14 @@ public abstract class Configuration implements IConfiguration {
         return relationshipRecords;
     }
 
+    @Override
     public List<NodeTemplate> getNodeRecords()
     {
         return nodeRecords;
     }
 
     @Override
-    public JSONObject getConfiguration() {
+    public Configuration getConfiguration() {
         return null;
     }
 

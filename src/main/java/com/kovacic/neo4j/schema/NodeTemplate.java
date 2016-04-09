@@ -35,6 +35,78 @@ public class NodeTemplate implements INodeTemplate{
         this.icFinal = icFinal;
     }
 
+    public String getNodeLabel() {
+        return nodeLabel;
+    }
+
+    public void setNodeLabel(String nodeLabel) {
+        this.nodeLabel = nodeLabel;
+    }
+
+    public String getNodeProperties() {
+        return nodeProperties;
+    }
+
+    public void setNodeProperties(String nodeProperties) {
+        this.nodeProperties = nodeProperties;
+    }
+
+    public String getIcName() {
+        return icName;
+    }
+
+    public void setIcName(String icName) {
+        this.icName = icName;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public String getEnable() {
+        return enable;
+    }
+
+    public void setEnable(String enable) {
+        this.enable = enable;
+    }
+
+    public String getValidation() {
+        return validation;
+    }
+
+    public void setValidation(String validation) {
+        this.validation = validation;
+    }
+
+    public String getDelete() {
+        return delete;
+    }
+
+    public void setDelete(String delete) {
+        this.delete = delete;
+    }
+
+    public String getUpdate() {
+        return update;
+    }
+
+    public void setUpdate(String update) {
+        this.update = update;
+    }
+
+    public Boolean getIcFinal() {
+        return icFinal;
+    }
+
+    public void setIcFinal(Boolean icFinal) {
+        this.icFinal = icFinal;
+    }
+
     @Override
     public Boolean addNodeConstraint() {
         return null;

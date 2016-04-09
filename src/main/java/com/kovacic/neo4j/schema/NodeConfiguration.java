@@ -10,7 +10,10 @@ import java.util.List;
  */
 public class NodeConfiguration extends Configuration {
 
-
+    @Override
+    public Configuration getConfiguration() {
+        return super.getConfiguration();
+    }
 
     @Override
     public Boolean addNodeTemplate(NodeTemplate template) {
