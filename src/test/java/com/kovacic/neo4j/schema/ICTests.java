@@ -23,8 +23,10 @@ public class ICTests {
         Configuration relationshipConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.RelationshipConfiguration);
         // Defining integrity constraints for nodes
         nodeConf.addNodeTemplate(new NodeTemplate());
-        NodeTemplate constraint = new NodeTemplate("u:User", "u:email", "icUnique", "unique", "validate", "deferred", "restrict", "restrict", false);
-        nodeConf.addNodeTemplate(constraint);
+        NodeTemplate constraintUser = new NodeTemplate("u:User", "u:email", "icUniqueUser", "unique", "validate", "deferred", "restrict", "restrict", false);
+        NodeTemplate constraintPerson = new NodeTemplate("p:Person", "p:username", "icUniquePerson", "unique", "validate", "deferred", "restrict", "restrict", false);
+        nodeConf.addNodeTemplate(constraintUser);
+        nodeConf.addNodeTemplate(constraintPerson);
         // Defining integrity constraints for relationships
         relationshipConf.addRelationshipTemplate(new RelationshipTemplate());
 

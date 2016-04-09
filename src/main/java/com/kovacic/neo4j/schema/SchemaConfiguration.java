@@ -32,8 +32,9 @@ public class SchemaConfiguration implements ISchemaConfiguration {
             obj.put("delete", template.getDelete());
             obj.put("update", template.getUpdate());
             obj.put("icFinal", template.getIcFinal());
+            System.out.println(obj);
         }
-        System.out.println(obj);
+
         return null;
     }
 
