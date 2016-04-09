@@ -15,11 +15,12 @@ public class NodeConfiguration extends Configuration {
         return super.getConfiguration();
     }
 
-    @Override
+    /*@Override
     public Boolean addNodeTemplate(NodeTemplate template) {
         System.out.println("NodeConfiguration fires " + template.icName);
+
         return null;
-    }
+    }*/
 
 
 }

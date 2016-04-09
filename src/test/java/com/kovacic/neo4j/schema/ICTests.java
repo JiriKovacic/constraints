@@ -17,10 +17,10 @@ public class ICTests {
 
     @Test
     public void schemaEnforcement() {
-        SchemaConfiguration configuration = new SchemaConfiguration();
+        SchemaConfiguration schemaConfiguration = new SchemaConfiguration();
         // Choosing configuration type
-        Configuration nodeConf = configuration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
-        Configuration relationshipConf = configuration.configurationFactory.getConfiguration(ConfigurationType.RelationshipConfiguration);
+        Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
+        Configuration relationshipConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.RelationshipConfiguration);
         // Defining integrity constraints for nodes
         nodeConf.addNodeTemplate(new NodeTemplate());
         NodeTemplate constraint = new NodeTemplate("u:User", "u:email", "icUnique", "unique", "validate", "deferred", "restrict", "restrict", false);
@@ -29,12 +29,12 @@ public class ICTests {
         relationshipConf.addRelationshipTemplate(new RelationshipTemplate());
 
         // Register configuration to Schema and start enforcement
-        configuration.registerConfiguration(nodeConf, relationshipConf);
+        schemaConfiguration.registerConfiguration(nodeConf, relationshipConf);
         // possible examples
         // configuration.registerConfiguration(null, relationshipConf);
         // configuration.registerConfiguration(nodeConf, null);
 
-        configuration.getAllConfiguration();
+        schemaConfiguration.getAllConfiguration();
     }
 
     @Test
