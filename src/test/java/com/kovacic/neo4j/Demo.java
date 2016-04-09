@@ -1,5 +1,6 @@
 package com.kovacic.neo4j;
 
+
 import com.graphaware.test.unit.GraphUnit;
 import org.junit.Test;
 import org.neo4j.graphdb.DynamicRelationshipType;

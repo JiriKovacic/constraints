@@ -128,5 +128,6 @@
     <orderEntry type="library" scope="TEST" name="Maven: org.springframework:spring-beans:4.2.2.RELEASE" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.springframework:spring-web:4.2.2.RELEASE" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.springframework:spring-webmvc:4.2.2.RELEASE" level="project" />
+    <orderEntry type="library" name="Maven: org.json:json:20160212" level="project" />
   </component>
 </module>
