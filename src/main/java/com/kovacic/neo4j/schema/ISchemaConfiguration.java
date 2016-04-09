@@ -1,6 +1,8 @@
 package com.kovacic.neo4j.schema;
 
 import org.json.JSONObject;
+import org.neo4j.graphdb.event.TransactionData;
+
 import java.util.List;
 
 /**
@@ -8,6 +10,6 @@ import java.util.List;
  */
 public interface ISchemaConfiguration {
     JSONObject getAllConfiguration();
-    void startEnforcing(Configuration nodeConf, Configuration relConf);
-
+    void registerConfiguration(Configuration nodeConf, Configuration relConf);
+    String enforce(TransactionData transactionData);
 }

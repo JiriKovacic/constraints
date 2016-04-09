@@ -32,8 +32,12 @@ public class ICTests {
         relationshipConf.addRelationshipTemplate(new RelationshipTemplate());
 
         // Register configuration to Schema and start enforcement
-        configuration.startEnforcing(nodeConf, relationshipConf);
+        configuration.registerConfiguration(nodeConf, relationshipConf);
+        // possible examples
+        // configuration.registerConfiguration(null, relationshipConf);
+        // configuration.registerConfiguration(nodeConf, null);
 
+        
     }
 
     @Test
