@@ -2,10 +2,7 @@ package com.kovacic.neo4j.schema;
 
 import com.graphaware.test.unit.GraphUnit;
 import org.junit.Test;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.test.TestGraphDatabaseFactory;
@@ -26,7 +23,7 @@ public class ICTests {
         Configuration relationshipConf = configuration.configurationFactory.getConfiguration(ConfigurationType.RelationshipConfiguration);
         // Defining integrity constraints for nodes
         nodeConf.addNodeTemplate(new NodeTemplate());
-        NodeTemplate constraint = new NodeTemplate("User", "email", "icUnique", "validate", "deferred", "restrict", "restrict", false);
+        NodeTemplate constraint = new NodeTemplate("u:User", "u:email", "icUnique", "unique", "validate", "deferred", "restrict", "restrict", false);
         nodeConf.addNodeTemplate(constraint);
         // Defining integrity constraints for relationships
         relationshipConf.addRelationshipTemplate(new RelationshipTemplate());
@@ -37,7 +34,7 @@ public class ICTests {
         // configuration.registerConfiguration(null, relationshipConf);
         // configuration.registerConfiguration(nodeConf, null);
 
-        
+
     }
 
     @Test
@@ -49,14 +46,14 @@ public class ICTests {
             @Override
             public Void beforeCommit(TransactionData transactionData) throws Exception {
 
-                Iterator<Node> iterator = transactionData.createdNodes().iterator();
-
-
-                while(iterator.hasNext()) {
+                //Iterator<Node> iterator = transactionData.createdNodes().iterator();
+                String temp = new SchemaConfiguration().enforce(transactionData);
+                System.out.println(temp);
+                /*while(iterator.hasNext()) {
                     Node node = iterator.next();
                     Object name = node.getProperty("name");
                     System.out.println("Node id is " + node.getId() + " name " + name);
-                }
+                }*/
                 return null;
             }
 
@@ -74,12 +71,26 @@ public class ICTests {
         try (Transaction tx = database.beginTx()) {
 
             Node michal = database.createNode();
+            michal.addLabel(new Label() {
+                @Override
+                public String name() {
+                    return "User";
+                }
+            });
             michal.setProperty("name", "Michal");
 
             Node jiri = database.createNode();
+            jiri.addLabel(new Label() {
+                @Override
+                public String name() {
+                    return "User";
+                }
+            });
             jiri.setProperty("name", "Jiri");
 
             michal.createRelationshipTo(jiri, DynamicRelationshipType.withName("FRIEND"));
+
+
 
             tx.success();
         } catch (Exception e) {

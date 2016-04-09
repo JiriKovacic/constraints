@@ -58,5 +58,6 @@ public class Demo {
 
 
         GraphUnit.printGraph(database);
+
     }
 }
