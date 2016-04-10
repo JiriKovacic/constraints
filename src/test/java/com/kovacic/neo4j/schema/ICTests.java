@@ -1,6 +1,7 @@
 package com.kovacic.neo4j.schema;
 
 import com.graphaware.test.unit.GraphUnit;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.event.TransactionData;
@@ -9,6 +10,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by Jirka on 9. 4. 2016.
@@ -36,7 +38,11 @@ public class ICTests {
         // configuration.registerConfiguration(null, relationshipConf);
         // configuration.registerConfiguration(nodeConf, null);
 
-        schemaConfiguration.getAllConfiguration();
+        List<JSONObject> ics = schemaConfiguration.getAllConfiguration();
+        Iterator<JSONObject> iterator = ics.iterator();
+        while(iterator.hasNext()) {
+            System.out.println(iterator.next());
+        }
     }
 
     @Test

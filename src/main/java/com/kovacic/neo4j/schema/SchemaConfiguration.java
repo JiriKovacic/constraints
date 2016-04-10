@@ -7,6 +7,8 @@ import org.neo4j.graphdb.event.TransactionData;
 import sun.awt.ConstrainableGraphics;
 
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by Jirka on 9. 4. 2016.
@@ -17,12 +19,14 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     private Configuration relatinshipConfiguration = new RelationshipConfiguration();
 
     @Override
-    public JSONObject getAllConfiguration() {
-        JSONObject obj = new JSONObject();
+    public List<JSONObject> getAllConfiguration() {
+        List<JSONObject> configuration = new LinkedList<>();
+
         Iterator<NodeTemplate> nodeIter = nodeConfiguration.getNodeRecords().iterator();
 
-        while(nodeIter.hasNext()) {
+        while (nodeIter.hasNext()) {
             NodeTemplate template = nodeIter.next();
+/*
             obj.put("icName", template.getIcName());
             obj.put("nodeLabel", template.getNodeLabel());
             obj.put("nodeProperties", template.getNodeProperties());
@@ -31,11 +35,21 @@ public class SchemaConfiguration implements ISchemaConfiguration {
             obj.put("validation", template.getValidation());
             obj.put("delete", template.getDelete());
             obj.put("update", template.getUpdate());
-            obj.put("icFinal", template.getIcFinal());
-            System.out.println(obj);
+            obj.put("icFinal", template.getIcFinal());*/
+            configuration.add(new JSONObject().put("icName", template.getIcName())
+                    .put("nodeLabel", template.getNodeLabel())
+                    .put("nodeProperties", template.getNodeProperties())
+                    .put("action", template.getAction())
+                    .put("enable", template.getEnable())
+                    .put("validation", template.getValidation())
+                    .put("delete", template.getDelete())
+                    .put("update", template.getUpdate())
+                    .put("icFinal", template.getIcFinal())
+            );
+            //System.out.println(obj);
         }
 
-        return null;
+        return configuration;
     }
 
     @Override
@@ -54,7 +68,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
         String temp = "";
         Iterator<Node> iterator = transactionData.createdNodes().iterator();
 
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             Node node = iterator.next();
             Object name = node.getProperty("name");
             System.out.println("Node id is " + node.getId() + " node label " + node.getLabels().iterator().next().name() + " name " + name);

@@ -9,7 +9,7 @@ import java.util.List;
  * Created by Jirka on 9. 4. 2016.
  */
 public interface ISchemaConfiguration {
-    JSONObject getAllConfiguration();
+    List<JSONObject> getAllConfiguration();
     void registerConfiguration(Configuration nodeConf, Configuration relConf);
     String enforce(TransactionData transactionData);
 }
