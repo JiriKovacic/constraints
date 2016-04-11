@@ -1,6 +1,8 @@
 package com.kovacic.neo4j.schema;
 
 import org.json.JSONObject;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.event.TransactionData;
 
 import java.util.List;
@@ -12,5 +14,5 @@ public interface ISchemaConfiguration {
     List<JSONObject> getAllConfiguration();
     void printAllConfigurations(List<JSONObject> allConstraints);
     void registerConfiguration(Configuration nodeConf, Configuration relConf);
-    String enforce(TransactionData transactionData);
+    String enforce(TransactionData transactionData, GraphDatabaseService database);
 }

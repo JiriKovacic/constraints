@@ -2,6 +2,8 @@ package com.kovacic.neo4j.schema;
 
 import org.json.JSONObject;
 import org.neo4j.cypher.internal.compiler.v1_9.parser.ParserPattern;
+import org.neo4j.cypher.internal.compiler.v2_2.ast.In;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.event.TransactionData;
 import sun.awt.ConstrainableGraphics;
@@ -54,7 +56,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     @Override
     public void printAllConfigurations(List<JSONObject> allConstraints) {
         Iterator<JSONObject> iterator = allConstraints.iterator();
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             System.out.println(iterator.next());
         }
     }
@@ -71,20 +73,49 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     }
 
     @Override
-    public String enforce(TransactionData transactionData) {
+    public String enforce(TransactionData transactionData, GraphDatabaseService database) {
         // Disable this print
         printAllConfigurations(getAllConfiguration());
-
-        String temp = "";
-        Iterator<Node> iterator = transactionData.createdNodes().iterator();
-
-        while (iterator.hasNext()) {
-            Node node = iterator.next();
-            Object name = node.getProperty("name");
-            System.out.println("Node id is " + node.getId() + " node label " + node.getLabels().iterator().next().name() + " name " + name);
-            temp += "OK ";
+        String message = "";
+        Iterator<NodeTemplate> nodeIter = nodeConfiguration.getNodeRecords().iterator();
+        while (nodeIter.hasNext()) {
+            NodeTemplate template = nodeIter.next();
+            if (template.action.toLowerCase() == "unique") {
+                // do for unique
+                try {
+                    message = validate(transactionData);
+                } catch (IntegrityConstraintViolationException e) {
+                    e.printStackTrace();
+                    System.out.println(e.getMessage());
+                }
+            } else if (template.action.toLowerCase() == "exists") {
+                // do for others
+            }
         }
 
-        return temp;
+
+        return message;
+    }
+
+    // For unique data
+    private String validate(TransactionData transactionData) throws IntegrityConstraintViolationException {
+
+        if (transactionData != null) {
+            for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext();) {
+                System.out.println(item.next());
+            }
+            throw new IntegrityConstraintViolationException("Error");
+
+        }
+        return "OK";
+    }
+
+    private String validate(Node node) throws IntegrityConstraintViolationException {
+
+        if (node != null) {
+            throw new IntegrityConstraintViolationException("Error");
+        }
+
+        return "OK";
     }
 }

@@ -4,6 +4,7 @@ import com.graphaware.test.unit.GraphUnit;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.test.TestGraphDatabaseFactory;
@@ -68,7 +69,7 @@ public class ICTests {
             public Void beforeCommit(TransactionData transactionData) throws Exception {
 
                 //Iterator<Node> iterator = transactionData.createdNodes().iterator();
-                String temp = schemaConfiguration.enforce(transactionData);
+                String temp = schemaConfiguration.enforce(transactionData, database);
                 System.out.println(temp);
                 /*while(iterator.hasNext()) {
                     Node node = iterator.next();
