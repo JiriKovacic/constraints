@@ -52,9 +52,13 @@ public class ICTests {
         SchemaConfiguration schemaConfiguration = new SchemaConfiguration();
         Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
         // Defining integrity constraints for nodes
-        NodeTemplate constraintUser = new NodeTemplate("u:User", "u:email", "icUniqueUser", "unique", "validate", "deferred", "restrict", "restrict", false);
+        NodeTemplate constraintUserUnique = new NodeTemplate("u:User", "u:email", "icUniqueUser", "unique", "validate", "deferred", "restrict", "restrict", false);
+        NodeTemplate constraintUserEmailMandatory = new NodeTemplate("User", "email", "'notNullMail", "exists", "validate", "deferred", "restrict", "restrict", false);
         NodeTemplate constraintPerson = new NodeTemplate("p:Person", "p:username", "icUniquePerson", "unique", "validate", "deferred", "restrict", "restrict", false);
-        nodeConf.addNodeTemplate(constraintUser);
+        nodeConf.addNodeTemplate(constraintUserUnique);
+        nodeConf.addNodeTemplate(constraintUserEmailMandatory);
+        nodeConf.addNodeTemplate(constraintPerson);
+
         nodeConf.addNodeTemplate(constraintPerson);
         // Register configuration to Schema
         schemaConfiguration.registerConfiguration(nodeConf, null);
@@ -69,8 +73,10 @@ public class ICTests {
             public Void beforeCommit(TransactionData transactionData) throws Exception {
 
                 //Iterator<Node> iterator = transactionData.createdNodes().iterator();
-                String temp = schemaConfiguration.enforce(transactionData, database);
+                String temp = schemaConfiguration.enforce(transactionData);
                 System.out.println(temp);
+                if(temp.toLowerCase() != "ok")
+                    throw new RuntimeException(temp);
                 /*while(iterator.hasNext()) {
                     Node node = iterator.next();
                     Object name = node.getProperty("name");
@@ -100,6 +106,14 @@ public class ICTests {
                 }
             });
             michal.setProperty("name", "Michal");
+            michal.setProperty("email", "Michal@graph.com");
+            michal.addLabel(new Label() {
+                @Override
+                public String name() {
+                    return "Author";
+                }
+            });
+
 
             Node jiri = database.createNode();
             jiri.addLabel(new Label() {

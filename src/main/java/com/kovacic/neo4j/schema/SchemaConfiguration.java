@@ -4,6 +4,7 @@ import org.json.JSONObject;
 import org.neo4j.cypher.internal.compiler.v1_9.parser.ParserPattern;
 import org.neo4j.cypher.internal.compiler.v2_2.ast.In;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.event.TransactionData;
 import sun.awt.ConstrainableGraphics;
@@ -73,23 +74,29 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     }
 
     @Override
-    public String enforce(TransactionData transactionData, GraphDatabaseService database) {
+    public String enforce(TransactionData transactionData) {
         // Disable this print
         printAllConfigurations(getAllConfiguration());
         String message = "";
         Iterator<NodeTemplate> nodeIter = nodeConfiguration.getNodeRecords().iterator();
         while (nodeIter.hasNext()) {
             NodeTemplate template = nodeIter.next();
-            if (template.action.toLowerCase() == "unique") {
+            /*if (template.action.toLowerCase() == "unique") {
                 // do for unique
                 try {
                     message = validate(transactionData);
                 } catch (IntegrityConstraintViolationException e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
                     System.out.println(e.getMessage());
                 }
-            } else if (template.action.toLowerCase() == "exists") {
+            } else*/ if (template.action.toLowerCase() == "exists") {
                 // do for others
+                try {
+                    message = validate(transactionData, template);
+                } catch (IntegrityConstraintViolationException e) {
+                    //e.printStackTrace();
+                    System.out.println(e.getMessage());
+                }
             }
         }
 
@@ -102,6 +109,12 @@ public class SchemaConfiguration implements ISchemaConfiguration {
 
         if (transactionData != null) {
             for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext();) {
+                Label label = (Label) item.next().getLabels();
+                for (Iterator<Node> item2 = transactionData.createdNodes().iterator(); item2.hasNext();)
+                {
+                    //item2.next().getLabels().iterator().next().name()
+                }
+
                 System.out.println(item.next());
             }
             throw new IntegrityConstraintViolationException("Error");
@@ -110,10 +123,22 @@ public class SchemaConfiguration implements ISchemaConfiguration {
         return "OK";
     }
 
-    private String validate(Node node) throws IntegrityConstraintViolationException {
+    private String validate(TransactionData transactionData, NodeTemplate template) throws IntegrityConstraintViolationException {
 
-        if (node != null) {
-            throw new IntegrityConstraintViolationException("Error");
+        if (transactionData != null) {
+            for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext();)
+            {
+                Node node = item.next();
+                while(node.getLabels().iterator().hasNext()) {
+                    Label lbl = node.getLabels().iterator().next();
+                    if(node.getLabels().iterator().next().name()== template.nodeLabel)
+                    {
+                        if(!node.hasProperty(template.nodeProperties))
+                            throw new IntegrityConstraintViolationException("The mandatory property " + template.nodeProperties + " required");
+                    }
+                }
+            }
+
         }
 
         return "OK";
