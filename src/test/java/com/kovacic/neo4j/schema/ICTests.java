@@ -48,6 +48,19 @@ public class ICTests {
     @Test
     public void schemaTests()
     {
+        SchemaConfiguration schemaConfiguration = new SchemaConfiguration();
+        Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
+        // Defining integrity constraints for nodes
+        NodeTemplate constraintUser = new NodeTemplate("u:User", "u:email", "icUniqueUser", "unique", "validate", "deferred", "restrict", "restrict", false);
+        NodeTemplate constraintPerson = new NodeTemplate("p:Person", "p:username", "icUniquePerson", "unique", "validate", "deferred", "restrict", "restrict", false);
+        nodeConf.addNodeTemplate(constraintUser);
+        nodeConf.addNodeTemplate(constraintPerson);
+        // Register configuration to Schema
+        schemaConfiguration.registerConfiguration(nodeConf, null);
+
+
+
+
         GraphDatabaseService database = new TestGraphDatabaseFactory().newImpermanentDatabase();
 
         database.registerTransactionEventHandler(new TransactionEventHandler<Void>() {
@@ -55,7 +68,7 @@ public class ICTests {
             public Void beforeCommit(TransactionData transactionData) throws Exception {
 
                 //Iterator<Node> iterator = transactionData.createdNodes().iterator();
-                String temp = new SchemaConfiguration().enforce(transactionData);
+                String temp = schemaConfiguration.enforce(transactionData);
                 System.out.println(temp);
                 /*while(iterator.hasNext()) {
                     Node node = iterator.next();

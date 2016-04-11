@@ -48,7 +48,6 @@ public class SchemaConfiguration implements ISchemaConfiguration {
             );
             //System.out.println(obj);
         }
-
         return configuration;
     }
 
