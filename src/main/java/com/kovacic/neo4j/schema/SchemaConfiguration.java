@@ -95,7 +95,9 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                     message = validate(transactionData, template);
                 } catch (IntegrityConstraintViolationException e) {
                     //e.printStackTrace();
-                    System.out.println(e.getMessage());
+                    //System.out.println(message = e.getMessage());
+                    message = e.getMessage();
+                    break;
                 }
             }
         }
@@ -129,9 +131,9 @@ public class SchemaConfiguration implements ISchemaConfiguration {
             for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext();)
             {
                 Node node = item.next();
-                while(node.getLabels().iterator().hasNext()) {
-                    Label lbl = node.getLabels().iterator().next();
-                    if(node.getLabels().iterator().next().name()== template.nodeLabel)
+                Iterator<Label> ll = node.getLabels().iterator();
+                while(ll.hasNext()) {
+                    if(ll.next().name()== template.nodeLabel)
                     {
                         if(!node.hasProperty(template.nodeProperties))
                             throw new IntegrityConstraintViolationException("The mandatory property " + template.nodeProperties + " required");
