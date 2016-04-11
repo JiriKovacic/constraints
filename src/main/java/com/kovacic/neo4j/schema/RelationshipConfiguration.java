@@ -8,7 +8,7 @@ import org.json.JSONObject;
 public class RelationshipConfiguration extends Configuration {
 
     @Override
-    public Boolean addRelationshipTemplate(RelationshipTemplate template) {
-        return null;
+    public Configuration getConfiguration() {
+        return super.getConfiguration();
     }
 }

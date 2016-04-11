@@ -10,6 +10,7 @@ import java.util.List;
  */
 public interface ISchemaConfiguration {
     List<JSONObject> getAllConfiguration();
+    void printAllConfigurations(List<JSONObject> allConstraints);
     void registerConfiguration(Configuration nodeConf, Configuration relConf);
     String enforce(TransactionData transactionData);
 }

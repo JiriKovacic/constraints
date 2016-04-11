@@ -53,6 +53,14 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     }
 
     @Override
+    public void printAllConfigurations(List<JSONObject> allConstraints) {
+        Iterator<JSONObject> iterator = allConstraints.iterator();
+        while(iterator.hasNext()) {
+            System.out.println(iterator.next());
+        }
+    }
+
+    @Override
     public void registerConfiguration(Configuration nodeConf, Configuration relConf) {
 
         if (nodeConf != null) {
@@ -65,6 +73,9 @@ public class SchemaConfiguration implements ISchemaConfiguration {
 
     @Override
     public String enforce(TransactionData transactionData) {
+        // Disable this print
+        printAllConfigurations(getAllConfiguration());
+
         String temp = "";
         Iterator<Node> iterator = transactionData.createdNodes().iterator();
 

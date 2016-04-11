@@ -38,15 +38,15 @@ public class ICTests {
         // configuration.registerConfiguration(null, relationshipConf);
         // configuration.registerConfiguration(nodeConf, null);
 
-        List<JSONObject> ics = schemaConfiguration.getAllConfiguration();
+        /*List<JSONObject> ics = schemaConfiguration.getAllConfiguration();
         Iterator<JSONObject> iterator = ics.iterator();
         while(iterator.hasNext()) {
             System.out.println(iterator.next());
-        }
+        }*/
     }
 
     @Test
-    public void uniqueTest()
+    public void schemaTests()
     {
         GraphDatabaseService database = new TestGraphDatabaseFactory().newImpermanentDatabase();
 
