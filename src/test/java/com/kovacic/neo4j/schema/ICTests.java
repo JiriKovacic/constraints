@@ -56,9 +56,9 @@ public class ICTests {
         NodeTemplate constraintUserEmailMandatory = new NodeTemplate("User", "email", "notNullMail", "exists", "validate", "deferred", "restrict", "restrict", false);
         NodeTemplate constraintPropVal = new NodeTemplate("User", "email = abc", "'notNullMail", "exists", "validate", "deferred", "restrict", "restrict", false);
         NodeTemplate constraintPerson = new NodeTemplate("p:Person", "p:username", "icUniquePerson", "unique", "validate", "deferred", "restrict", "restrict", false);
-        NodeTemplate constraintBoolProp = new NodeTemplate("User", "active < 0", "boolActive", "exists", "validate", "deferred", "restrict", "restrict", false);
+        NodeTemplate constraintRegexProp = new NodeTemplate("User", "email AS \"[aA-zZ]+?@[a-z].+[a-z]\"", "boolActive", "exists", "validate", "deferred", "restrict", "restrict", false);
 
-        nodeConf.addNodeTemplate(constraintBoolProp);
+        nodeConf.addNodeTemplate(constraintRegexProp);
         nodeConf.addNodeTemplate(constraintPropVal);
         nodeConf.addNodeTemplate(constraintUserUnique);
         nodeConf.addNodeTemplate(constraintUserEmailMandatory);

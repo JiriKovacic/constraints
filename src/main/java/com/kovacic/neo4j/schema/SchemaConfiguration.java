@@ -215,32 +215,29 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                         if (ll.next().name().equals(template.nodeLabel)) {
                             if (node.hasProperty(getPropertyName(template))) {
                                 Object o = node.getProperty(getPropertyName(template));
-                                if(NumberUtils.isNumber(o.toString()))
-                                {
-                                    switch (getMathSymbol(template))
-                                    {
+                                if (NumberUtils.isNumber(o.toString())) {
+                                    switch (getMathSymbol(template)) {
                                         case "<":
-                                            if(!(NumberUtils.createDouble(o.toString()) < NumberUtils.createDouble(getPropertyValue(template))))
+                                            if (!(NumberUtils.createDouble(o.toString()) < NumberUtils.createDouble(getPropertyValue(template))))
                                                 throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
                                             break;
                                         case ">":
-                                            if(!(NumberUtils.createDouble(o.toString()) > NumberUtils.createDouble(getPropertyValue(template))))
+                                            if (!(NumberUtils.createDouble(o.toString()) > NumberUtils.createDouble(getPropertyValue(template))))
                                                 throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
                                             break;
                                         case "<=":
-                                            if(!(NumberUtils.createDouble(o.toString()) <= NumberUtils.createDouble(getPropertyValue(template))))
+                                            if (!(NumberUtils.createDouble(o.toString()) <= NumberUtils.createDouble(getPropertyValue(template))))
                                                 throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
                                             break;
                                         case ">=":
-                                            if(!(NumberUtils.createDouble(o.toString()) >= NumberUtils.createDouble(getPropertyValue(template))))
+                                            if (!(NumberUtils.createDouble(o.toString()) >= NumberUtils.createDouble(getPropertyValue(template))))
                                                 throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
                                             break;
                                         case "==":
-                                            if(!(NumberUtils.createDouble(o.toString()) == NumberUtils.createDouble(getPropertyValue(template))))
+                                            if (!(NumberUtils.createDouble(o.toString()) == NumberUtils.createDouble(getPropertyValue(template))))
                                                 throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
                                             break;
                                     }
-
                                 }
                             }
                         }
@@ -248,6 +245,19 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                 }
                 break;
             case Regex:
+                for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
+                    Node node = item.next();
+                    Iterator<Label> ll = node.getLabels().iterator();
+                    while (ll.hasNext()) {
+                        if (ll.next().name().equals(template.nodeLabel)) {
+                            if (node.hasProperty(getPropertyName(template))) {
+                                Object o = node.getProperty(getPropertyName(template));
+                                if(!(o.toString().matches(getPropertyValue(template).substring(1, getPropertyValue(template).length() - 1))))
+                                    throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
+                            }
+                        }
+                    }
+                }
                 break;
             case Error:
                 throw new IntegrityConstraintViolationException("Not recognized the integrity constraint type...Try again...");
@@ -270,7 +280,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
         if (temp1[1].toLowerCase().contentEquals("as")) {
             if (temp1[2].toLowerCase().contentEquals("boolean") || temp1[2].toLowerCase().contentEquals("long") || temp1[2].toLowerCase().contentEquals("double") || temp1[2].toLowerCase().contentEquals("string") || temp1[2].toLowerCase().contentEquals("char") || temp1[2].toLowerCase().contains("list"))
                 return TemplateType.Datatype;
-            else
+            else if (temp1[2].contains("\""))
                 return TemplateType.Regex;
         }
         return TemplateType.Error;
