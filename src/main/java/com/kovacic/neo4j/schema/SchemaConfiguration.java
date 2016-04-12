@@ -79,6 +79,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
         printAllConfigurations(getAllConfiguration());
         String message = "";
         Iterator<NodeTemplate> nodeIter = nodeConfiguration.getNodeRecords().iterator();
+        // Validation for nodes
         while (nodeIter.hasNext()) {
             NodeTemplate template = nodeIter.next();
             /*if (template.action.toLowerCase() == "unique") {
@@ -89,7 +90,8 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                     //e.printStackTrace();
                     System.out.println(e.getMessage());
                 }
-            } else*/ if (template.action.toLowerCase() == "exists") {
+            } else*/
+            if (template.action.toLowerCase() == "exists") {
                 // do for others
                 try {
                     message = validate(transactionData, template);
@@ -102,6 +104,8 @@ public class SchemaConfiguration implements ISchemaConfiguration {
             }
         }
 
+        // Validation for relationships
+
 
         return message;
     }
@@ -110,10 +114,9 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     private String validate(TransactionData transactionData) throws IntegrityConstraintViolationException {
 
         if (transactionData != null) {
-            for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext();) {
+            for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
                 Label label = (Label) item.next().getLabels();
-                for (Iterator<Node> item2 = transactionData.createdNodes().iterator(); item2.hasNext();)
-                {
+                for (Iterator<Node> item2 = transactionData.createdNodes().iterator(); item2.hasNext(); ) {
                     //item2.next().getLabels().iterator().next().name()
                 }
 
@@ -127,22 +130,46 @@ public class SchemaConfiguration implements ISchemaConfiguration {
 
     private String validate(TransactionData transactionData, NodeTemplate template) throws IntegrityConstraintViolationException {
 
-        if (transactionData != null) {
-            for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext();)
-            {
-                Node node = item.next();
-                Iterator<Label> ll = node.getLabels().iterator();
-                while(ll.hasNext()) {
-                    if(ll.next().name()== template.nodeLabel)
-                    {
-                        if(!node.hasProperty(template.nodeProperties))
-                            throw new IntegrityConstraintViolationException("The mandatory property " + template.nodeProperties + " required");
+        // Determine a template type
+        switch (icType(template)) {
+            case Mandatory:
+                if (transactionData != null) {
+                    for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
+                        Node node = item.next();
+                        Iterator<Label> ll = node.getLabels().iterator();
+                        while (ll.hasNext()) {
+                            if (ll.next().name() == template.nodeLabel) {
+                                if (!node.hasProperty(template.nodeProperties))
+                                    throw new IntegrityConstraintViolationException("The mandatory property " + template.nodeProperties + " required");
+                            }
+                        }
                     }
-                }
-            }
-
+                }break;
+            case Datatype:
+                break;
+            case Math:
+                break;
+            case Regex:
+                break;
         }
-
         return "OK";
+    }
+
+    private TemplateType icType(NodeTemplate template) {
+        String[] temp1 = template.nodeProperties.split(" ");
+        String[] temp2 = template.nodeProperties.split("AS");
+        if (temp1.length == temp2.length)
+            return TemplateType.Mandatory;
+        // Math
+        // Data type
+        // Regex
+        return null;
+    }
+
+    private TemplateType icType(RelationshipTemplate template) {
+        // Math
+        // Data type
+        // Regex
+        return null;
     }
 }

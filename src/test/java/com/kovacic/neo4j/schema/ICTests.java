@@ -54,10 +54,14 @@ public class ICTests {
         // Defining integrity constraints for nodes
         NodeTemplate constraintUserUnique = new NodeTemplate("u:User", "u:email", "icUniqueUser", "unique", "validate", "deferred", "restrict", "restrict", false);
         NodeTemplate constraintUserEmailMandatory = new NodeTemplate("User", "email", "'notNullMail", "exists", "validate", "deferred", "restrict", "restrict", false);
+        NodeTemplate constraintPropVal = new NodeTemplate("User", "email = abc", "'notNullMail", "exists", "validate", "deferred", "restrict", "restrict", false);
         NodeTemplate constraintPerson = new NodeTemplate("p:Person", "p:username", "icUniquePerson", "unique", "validate", "deferred", "restrict", "restrict", false);
+        nodeConf.addNodeTemplate(constraintPropVal);
         nodeConf.addNodeTemplate(constraintUserUnique);
         nodeConf.addNodeTemplate(constraintUserEmailMandatory);
         nodeConf.addNodeTemplate(constraintPerson);
+
+
 
         nodeConf.addNodeTemplate(constraintPerson);
         // Register configuration to Schema
