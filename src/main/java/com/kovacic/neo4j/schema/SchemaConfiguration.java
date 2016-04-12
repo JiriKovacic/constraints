@@ -7,6 +7,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.event.TransactionData;
+import org.neo4j.kernel.api.Neo4jTypes;
 import sun.awt.ConstrainableGraphics;
 
 import java.util.Iterator;
@@ -94,7 +95,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                     System.out.println(e.getMessage());
                 }
             } else*/
-            if (template.action.toLowerCase() == "exists") {
+            if (template.action.toLowerCase().equals("exists")) {
                 // do for others
                 try {
                     message = validate(transactionData, template);
@@ -169,6 +170,39 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                                         throw new IntegrityConstraintViolationException("The datatype property defined as (" + template.nodeProperties + ") required");
                                     }
                                 }
+                                // Double
+                                if(getPropertyType(template).toLowerCase().equals("double")) {
+                                    try {
+                                        Double.valueOf(o.toString());
+                                    } catch (Exception e) {
+                                        throw new IntegrityConstraintViolationException("The datatype property defined as (" + template.nodeProperties + ") required");
+                                    }
+                                }
+                                // Integer
+                                if(getPropertyType(template).toLowerCase().equals("integer")) {
+                                    try {
+                                        Integer.valueOf(o.toString());
+                                    } catch (Exception e) {
+                                        throw new IntegrityConstraintViolationException("The datatype property defined as (" + template.nodeProperties + ") required");
+                                    }
+                                }
+                                // String
+                                if(getPropertyType(template).toLowerCase().equals("string")) {
+                                    try {
+                                        String.valueOf(o);
+                                    } catch (Exception e) {
+                                        throw new IntegrityConstraintViolationException("The datatype property defined as (" + template.nodeProperties + ") required");
+                                    }
+                                }
+                                // Char
+                                if(getPropertyType(template).toLowerCase().equals("char")) {
+                                    try {
+                                        String.valueOf((char)o);
+                                    } catch (Exception e) {
+                                        throw new IntegrityConstraintViolationException("The datatype property defined as (" + template.nodeProperties + ") required");
+                                    }
+                                }
+
                             }
                         }
                     }
