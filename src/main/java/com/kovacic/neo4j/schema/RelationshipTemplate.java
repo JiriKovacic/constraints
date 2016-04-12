@@ -8,7 +8,7 @@ import java.util.List;
 public class RelationshipTemplate implements IRelationshipTemplate {
 
     protected String relationshipType;
-    protected List<String> relationshipProperties;
+    protected String relationshipProperties;
     protected String icName;
     protected String enable;
     protected String validation;
@@ -18,7 +18,7 @@ public class RelationshipTemplate implements IRelationshipTemplate {
 
     public RelationshipTemplate() {}
 
-    public RelationshipTemplate(String relationshipType, List<String> relationshipProperties,
+    public RelationshipTemplate(String relationshipType, String relationshipProperties,
                         String icName, String enable, String validation,
                         String delete, String update, Boolean icFinal)
     {

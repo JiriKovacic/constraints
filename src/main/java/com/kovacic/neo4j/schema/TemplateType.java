@@ -7,5 +7,6 @@ public enum TemplateType {
     Math,
     Datatype,
     Regex,
-    Mandatory
+    Mandatory,
+    Error
 }

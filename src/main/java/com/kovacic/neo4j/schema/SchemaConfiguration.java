@@ -75,6 +75,8 @@ public class SchemaConfiguration implements ISchemaConfiguration {
 
     @Override
     public String enforce(TransactionData transactionData) {
+        if (transactionData != null)
+            throw new IllegalArgumentException("No transaction data");
         // Disable this print
         printAllConfigurations(getAllConfiguration());
         String message = "";
@@ -123,7 +125,6 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                 System.out.println(item.next());
             }
             throw new IntegrityConstraintViolationException("Error");
-
         }
         return "OK";
     }
@@ -133,19 +134,28 @@ public class SchemaConfiguration implements ISchemaConfiguration {
         // Determine a template type
         switch (icType(template)) {
             case Mandatory:
-                if (transactionData != null) {
-                    for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
-                        Node node = item.next();
-                        Iterator<Label> ll = node.getLabels().iterator();
-                        while (ll.hasNext()) {
-                            if (ll.next().name() == template.nodeLabel) {
-                                if (!node.hasProperty(template.nodeProperties))
-                                    throw new IntegrityConstraintViolationException("The mandatory property " + template.nodeProperties + " required");
-                            }
+                for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
+                    Node node = item.next();
+                    Iterator<Label> ll = node.getLabels().iterator();
+                    while (ll.hasNext()) {
+                        if (ll.next().name() == template.nodeLabel) {
+                            if (!node.hasProperty(template.nodeProperties))
+                                throw new IntegrityConstraintViolationException("The mandatory property " + template.nodeProperties + " required");
                         }
                     }
-                }break;
+                }
+                break;
             case Datatype:
+                for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
+                    Node node = item.next();
+                    Iterator<Label> ll = node.getLabels().iterator();
+                    while (ll.hasNext()) {
+                        if (ll.next().name() == template.nodeLabel) {
+                            if (!node.hasProperty(template.nodeProperties))
+                                throw new IntegrityConstraintViolationException("The datatype property defined as " + template.nodeProperties + " required");
+                        }
+                    }
+                }
                 break;
             case Math:
                 break;
@@ -158,12 +168,20 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     private TemplateType icType(NodeTemplate template) {
         String[] temp1 = template.nodeProperties.split(" ");
         String[] temp2 = template.nodeProperties.split("AS");
+        // Regular property
         if (temp1.length == temp2.length)
             return TemplateType.Mandatory;
         // Math
-        // Data type
-        // Regex
-        return null;
+        if (temp1[1] == "<" || temp1[1] == ">" || temp1[1] == "<=" || temp1[1] == ">=" || temp1[1] == ">=")
+            return TemplateType.Math;
+        // Data type and regex
+        if (temp2[1] == "AS") {
+            if (temp2[2].toLowerCase() == "boolean" || temp2[2].toLowerCase() == "long" || temp2[2].toLowerCase() == "double" || temp2[2].toLowerCase() == "string" || temp2[2].toLowerCase() == "char" || temp2[2].toLowerCase().contains("list"))
+                return TemplateType.Datatype;
+            else
+                return TemplateType.Regex;
+        }
+        return TemplateType.Error;
     }
 
     private TemplateType icType(RelationshipTemplate template) {
@@ -171,5 +189,13 @@ public class SchemaConfiguration implements ISchemaConfiguration {
         // Data type
         // Regex
         return null;
+    }
+
+    private String getPropertyName(NodeTemplate template) {
+        return template.nodeProperties.split(" ")[0];
+    }
+
+    private String getPropertyName(RelationshipTemplate template) {
+        return template.relationshipProperties.split(" ")[0];
     }
 }
