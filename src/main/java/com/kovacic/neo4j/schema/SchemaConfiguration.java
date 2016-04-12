@@ -87,16 +87,21 @@ public class SchemaConfiguration implements ISchemaConfiguration {
         // Validation for nodes
         while (nodeIter.hasNext()) {
             NodeTemplate template = nodeIter.next();
-            /*if (template.action.toLowerCase() == "unique") {
+            try {
+                message = validate(transactionData, template);
+            } catch (IntegrityConstraintViolationException e) {
+                //e.printStackTrace();
+                System.out.println(e.getMessage());
+            }
+            /*if (template.action.toLowerCase().equals("unique")) {
                 // do for unique
                 try {
-                    message = validate(transactionData);
+                    message = validate(transactionData, template);
                 } catch (IntegrityConstraintViolationException e) {
                     //e.printStackTrace();
                     System.out.println(e.getMessage());
                 }
-            } else*/
-            if (template.action.toLowerCase().equals("exists")) {
+            } else if (template.action.toLowerCase().equals("exists")) {
                 // do for others
                 try {
                     message = validate(transactionData, template);
@@ -106,7 +111,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                     message = e.getMessage();
                     break;
                 }
-            }
+            }*/
         }
 
         // Validation for relationships
@@ -116,151 +121,192 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     }
 
     // For unique clause data
-    private String validate(TransactionData transactionData) throws IntegrityConstraintViolationException {
+    /*private String validate(TransactionData transactionData, NodeTemplate template) throws IntegrityConstraintViolationException {
 
-        if (transactionData != null) {
-            for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
-                Label label = (Label) item.next().getLabels();
-                for (Iterator<Node> item2 = transactionData.createdNodes().iterator(); item2.hasNext(); ) {
-                    //item2.next().getLabels().iterator().next().name()
+        for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
+            Node node = item.next();
+            Iterator<Label> ll = node.getLabels().iterator();
+            while (ll.hasNext()) {
+                if (ll.next().name().equals(template.nodeLabel)) {
+                    if (node.hasProperty(getPropertyName(template))) {
+                        Object o = node.getProperty(getPropertyName(template));
+                    }
                 }
-
-                System.out.println(item.next());
             }
-            throw new IntegrityConstraintViolationException("Error");
         }
-        return "OK";
-    }
+        throw new IntegrityConstraintViolationException("Error");
+
+        //return "OK";
+    }*/
 
     // For exists clause data
     private String validate(TransactionData transactionData, NodeTemplate template) throws IntegrityConstraintViolationException {
+        if (template.action.toLowerCase().equals("unique")) {
+            Object obj1 = null;
+            Object obj2 = null;
+            for (Iterator<Node> node1 = transactionData.createdNodes().iterator(); node1.hasNext(); ) {
+                Node node = node1.next();
+                Iterator<Label> ll1 = node.getLabels().iterator();
+                while (ll1.hasNext()) {
+                    if (ll1.next().name().equals(template.nodeLabel)) {
+                        if (node.hasProperty(getPropertyName(template))) {
+                            for (Iterator<Node> node2 = transactionData.createdNodes().iterator(); node2.hasNext(); ) {
+                                Node anotherNode = node2.next();
+                                Iterator<Label> ll2 = anotherNode.getLabels().iterator();
+                                while (ll2.hasNext()) {
+                                    if (ll2.next().name().equals(template.nodeLabel)) {
+                                        if (anotherNode.hasProperty(getPropertyName(template))) {
+                                            if(node.getId() != anotherNode.getId())
+                                            {
+                                                obj1 = node.getProperty(getPropertyName(template));
+                                                obj2 = anotherNode.getProperty(getPropertyName(template));
+                                                if(obj1.equals(obj2))
+                                                    throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at " + template.nodeProperties + ", duplicity value: " + obj1.toString() + " ");
+                                            }
+                                        } /*else
+                                            throw new IntegrityConstraintViolationException("The UNIQUE constraint must contain a property " + template.nodeProperties);*/
+                                    }
+                                }
+                            }
+                        } else
+                            throw new IntegrityConstraintViolationException("The UNIQUE constraint must contain a property " + template.nodeProperties);
+                    }
+                }
+            }
+        } else if (template.action.toLowerCase().
 
-        // Determine a template type
-        switch (icType(template)) {
-            case Mandatory:
-                for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
-                    Node node = item.next();
-                    Iterator<Label> ll = node.getLabels().iterator();
-                    while (ll.hasNext()) {
-                        if (ll.next().name() == template.nodeLabel) {
-                            if (!node.hasProperty(template.nodeProperties))
-                                throw new IntegrityConstraintViolationException("The mandatory property " + template.nodeProperties + " required");
+                equals("exists")
+
+                )
+
+        {
+            // Determine a template type
+            switch (icType(template)) {
+                case Mandatory:
+                    for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
+                        Node node = item.next();
+                        Iterator<Label> ll = node.getLabels().iterator();
+                        while (ll.hasNext()) {
+                            if (ll.next().name().equals(template.nodeLabel)) {
+                                if (!node.hasProperty(template.nodeProperties))
+                                    throw new IntegrityConstraintViolationException("The mandatory property " + template.nodeProperties + " required");
+                            }
                         }
                     }
-                }
-                break;
-            case Datatype:
-                for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
-                    Node node = item.next();
-                    Iterator<Label> ll = node.getLabels().iterator();
-                    while (ll.hasNext()) {
-                        if (ll.next().name().equals(template.nodeLabel)) {
-                            if (node.hasProperty(getPropertyName(template))) {
-                                Object o = node.getProperty(getPropertyName(template));
-                                // Boolean
-                                if (getPropertyType(template).toLowerCase().equals("boolean")) {
-                                    if (!Boolean.valueOf(o.toString()))
-                                        throw new IntegrityConstraintViolationException("The datatype property defined as " + template.nodeProperties + " required");
-                                }
-                                // Long
-                                if (getPropertyType(template).toLowerCase().equals("long")) {
-                                    try {
-                                        Long.valueOf(o.toString());
-                                    } catch (Exception e) {
-                                        throw new IntegrityConstraintViolationException("The datatype property defined as (" + template.nodeProperties + ") required");
+                    break;
+                case Datatype:
+                    for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
+                        Node node = item.next();
+                        Iterator<Label> ll = node.getLabels().iterator();
+                        while (ll.hasNext()) {
+                            if (ll.next().name().equals(template.nodeLabel)) {
+                                if (node.hasProperty(getPropertyName(template))) {
+                                    Object o = node.getProperty(getPropertyName(template));
+                                    // Boolean
+                                    if (getPropertyType(template).toLowerCase().equals("boolean")) {
+                                        if (!Boolean.valueOf(o.toString()))
+                                            throw new IntegrityConstraintViolationException("The datatype property defined as " + template.nodeProperties + " required");
                                     }
-                                }
-                                // Double
-                                if (getPropertyType(template).toLowerCase().equals("double")) {
-                                    try {
-                                        Double.valueOf(o.toString());
-                                    } catch (Exception e) {
-                                        throw new IntegrityConstraintViolationException("The datatype property defined as (" + template.nodeProperties + ") required");
+                                    // Long
+                                    if (getPropertyType(template).toLowerCase().equals("long")) {
+                                        try {
+                                            Long.valueOf(o.toString());
+                                        } catch (Exception e) {
+                                            throw new IntegrityConstraintViolationException("The datatype property defined as (" + template.nodeProperties + ") required");
+                                        }
                                     }
-                                }
-                                // Integer
-                                if (getPropertyType(template).toLowerCase().equals("integer")) {
-                                    try {
-                                        Integer.valueOf(o.toString());
-                                    } catch (Exception e) {
-                                        throw new IntegrityConstraintViolationException("The datatype property defined as (" + template.nodeProperties + ") required");
+                                    // Double
+                                    if (getPropertyType(template).toLowerCase().equals("double")) {
+                                        try {
+                                            Double.valueOf(o.toString());
+                                        } catch (Exception e) {
+                                            throw new IntegrityConstraintViolationException("The datatype property defined as (" + template.nodeProperties + ") required");
+                                        }
                                     }
-                                }
-                                // String
-                                if (getPropertyType(template).toLowerCase().equals("string")) {
-                                    try {
-                                        String.valueOf(o);
-                                    } catch (Exception e) {
-                                        throw new IntegrityConstraintViolationException("The datatype property defined as (" + template.nodeProperties + ") required");
+                                    // Integer
+                                    if (getPropertyType(template).toLowerCase().equals("integer")) {
+                                        try {
+                                            Integer.valueOf(o.toString());
+                                        } catch (Exception e) {
+                                            throw new IntegrityConstraintViolationException("The datatype property defined as (" + template.nodeProperties + ") required");
+                                        }
                                     }
-                                }
-                                // Char
-                                if (getPropertyType(template).toLowerCase().equals("char")) {
-                                    try {
-                                        String.valueOf((char) o);
-                                    } catch (Exception e) {
-                                        throw new IntegrityConstraintViolationException("The datatype property defined as (" + template.nodeProperties + ") required");
+                                    // String
+                                    if (getPropertyType(template).toLowerCase().equals("string")) {
+                                        try {
+                                            String.valueOf(o);
+                                        } catch (Exception e) {
+                                            throw new IntegrityConstraintViolationException("The datatype property defined as (" + template.nodeProperties + ") required");
+                                        }
+                                    }
+                                    // Char
+                                    if (getPropertyType(template).toLowerCase().equals("char")) {
+                                        try {
+                                            String.valueOf((char) o);
+                                        } catch (Exception e) {
+                                            throw new IntegrityConstraintViolationException("The datatype property defined as (" + template.nodeProperties + ") required");
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
-                break;
-            case Math:
-                for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
-                    Node node = item.next();
-                    Iterator<Label> ll = node.getLabels().iterator();
-                    while (ll.hasNext()) {
-                        if (ll.next().name().equals(template.nodeLabel)) {
-                            if (node.hasProperty(getPropertyName(template))) {
-                                Object o = node.getProperty(getPropertyName(template));
-                                if (NumberUtils.isNumber(o.toString())) {
-                                    switch (getMathSymbol(template)) {
-                                        case "<":
-                                            if (!(NumberUtils.createDouble(o.toString()) < NumberUtils.createDouble(getPropertyValue(template))))
-                                                throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
-                                            break;
-                                        case ">":
-                                            if (!(NumberUtils.createDouble(o.toString()) > NumberUtils.createDouble(getPropertyValue(template))))
-                                                throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
-                                            break;
-                                        case "<=":
-                                            if (!(NumberUtils.createDouble(o.toString()) <= NumberUtils.createDouble(getPropertyValue(template))))
-                                                throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
-                                            break;
-                                        case ">=":
-                                            if (!(NumberUtils.createDouble(o.toString()) >= NumberUtils.createDouble(getPropertyValue(template))))
-                                                throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
-                                            break;
-                                        case "==":
-                                            if (!(NumberUtils.createDouble(o.toString()) == NumberUtils.createDouble(getPropertyValue(template))))
-                                                throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
-                                            break;
+                    break;
+                case Math:
+                    for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
+                        Node node = item.next();
+                        Iterator<Label> ll = node.getLabels().iterator();
+                        while (ll.hasNext()) {
+                            if (ll.next().name().equals(template.nodeLabel)) {
+                                if (node.hasProperty(getPropertyName(template))) {
+                                    Object o = node.getProperty(getPropertyName(template));
+                                    if (NumberUtils.isNumber(o.toString())) {
+                                        switch (getMathSymbol(template)) {
+                                            case "<":
+                                                if (!(NumberUtils.createDouble(o.toString()) < NumberUtils.createDouble(getPropertyValue(template))))
+                                                    throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
+                                                break;
+                                            case ">":
+                                                if (!(NumberUtils.createDouble(o.toString()) > NumberUtils.createDouble(getPropertyValue(template))))
+                                                    throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
+                                                break;
+                                            case "<=":
+                                                if (!(NumberUtils.createDouble(o.toString()) <= NumberUtils.createDouble(getPropertyValue(template))))
+                                                    throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
+                                                break;
+                                            case ">=":
+                                                if (!(NumberUtils.createDouble(o.toString()) >= NumberUtils.createDouble(getPropertyValue(template))))
+                                                    throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
+                                                break;
+                                            case "==":
+                                                if (!(NumberUtils.createDouble(o.toString()) == NumberUtils.createDouble(getPropertyValue(template))))
+                                                    throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
+                                                break;
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
-                break;
-            case Regex:
-                for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
-                    Node node = item.next();
-                    Iterator<Label> ll = node.getLabels().iterator();
-                    while (ll.hasNext()) {
-                        if (ll.next().name().equals(template.nodeLabel)) {
-                            if (node.hasProperty(getPropertyName(template))) {
-                                Object o = node.getProperty(getPropertyName(template));
-                                if(!(o.toString().matches(getPropertyValue(template).substring(1, getPropertyValue(template).length() - 1))))
-                                    throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
+                    break;
+                case Regex:
+                    for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
+                        Node node = item.next();
+                        Iterator<Label> ll = node.getLabels().iterator();
+                        while (ll.hasNext()) {
+                            if (ll.next().name().equals(template.nodeLabel)) {
+                                if (node.hasProperty(getPropertyName(template))) {
+                                    Object o = node.getProperty(getPropertyName(template));
+                                    if (!(o.toString().matches(getPropertyValue(template).substring(1, getPropertyValue(template).length() - 1))))
+                                        throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
+                                }
                             }
                         }
                     }
-                }
-                break;
-            case Error:
-                throw new IntegrityConstraintViolationException("Not recognized the integrity constraint type...Try again...");
+                    break;
+                case Error:
+                    throw new IntegrityConstraintViolationException("Not recognized the integrity constraint type...Try again...");
+            }
         }
 
         return "OK";

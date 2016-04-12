@@ -52,7 +52,7 @@ public class ICTests {
         SchemaConfiguration schemaConfiguration = new SchemaConfiguration();
         Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
         // Defining integrity constraints for nodes
-        NodeTemplate constraintUserUnique = new NodeTemplate("u:User", "u:email", "icUniqueUser", "unique", "validate", "deferred", "restrict", "restrict", false);
+        /*
         NodeTemplate constraintUserEmailMandatory = new NodeTemplate("User", "email", "notNullMail", "exists", "validate", "deferred", "restrict", "restrict", false);
         NodeTemplate constraintPropVal = new NodeTemplate("User", "email = abc", "'notNullMail", "exists", "validate", "deferred", "restrict", "restrict", false);
         NodeTemplate constraintPerson = new NodeTemplate("p:Person", "p:username", "icUniquePerson", "unique", "validate", "deferred", "restrict", "restrict", false);
@@ -60,18 +60,15 @@ public class ICTests {
 
         nodeConf.addNodeTemplate(constraintRegexProp);
         nodeConf.addNodeTemplate(constraintPropVal);
-        nodeConf.addNodeTemplate(constraintUserUnique);
         nodeConf.addNodeTemplate(constraintUserEmailMandatory);
         nodeConf.addNodeTemplate(constraintPerson);
-
-
-
-        nodeConf.addNodeTemplate(constraintPerson);
         // Register configuration to Schema
+        schemaConfiguration.registerConfiguration(nodeConf, null);*/
+
+        // Unique test
+        NodeTemplate constraintUserUnique = new NodeTemplate("User", "email", "icUniqueUser", "unique", "validate", "deferred", "restrict", "restrict", false);
+        nodeConf.addNodeTemplate(constraintUserUnique);
         schemaConfiguration.registerConfiguration(nodeConf, null);
-
-
-
 
         GraphDatabaseService database = new TestGraphDatabaseFactory().newImpermanentDatabase();
 
@@ -113,7 +110,7 @@ public class ICTests {
                 }
             });
             michal.setProperty("name", "Michal");
-            michal.setProperty("email", "Michal@graph.com");
+            michal.setProperty("email", "test@test.com");
             michal.addLabel(new Label() {
                 @Override
                 public String name() {
@@ -131,10 +128,11 @@ public class ICTests {
             });
             jiri.setProperty("name", "Jiri");
             jiri.setProperty("active", 0);
+            jiri.setProperty("email", "example@test.com");
 
             michal.createRelationshipTo(jiri, DynamicRelationshipType.withName("FRIEND"));
 
-
+            Result res = database.execute("create (u:User {name:'Pepa', email:'test@test.com'})");
 
             tx.success();
         } catch (Exception e) {
