@@ -1,5 +1,6 @@
 package com.kovacic.neo4j.schema;
 
+import org.apache.commons.lang3.math.NumberUtils;
 import org.json.JSONObject;
 import org.neo4j.cypher.internal.compiler.v1_9.parser.ParserPattern;
 import org.neo4j.cypher.internal.compiler.v2_2.ast.In;
@@ -157,13 +158,12 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                             if (node.hasProperty(getPropertyName(template))) {
                                 Object o = node.getProperty(getPropertyName(template));
                                 // Boolean
-                                if(getPropertyType(template).toLowerCase().equals("boolean"))
-                                {
-                                    if(!Boolean.valueOf(o.toString()))
+                                if (getPropertyType(template).toLowerCase().equals("boolean")) {
+                                    if (!Boolean.valueOf(o.toString()))
                                         throw new IntegrityConstraintViolationException("The datatype property defined as " + template.nodeProperties + " required");
                                 }
                                 // Long
-                                if(getPropertyType(template).toLowerCase().equals("long")) {
+                                if (getPropertyType(template).toLowerCase().equals("long")) {
                                     try {
                                         Long.valueOf(o.toString());
                                     } catch (Exception e) {
@@ -171,7 +171,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                                     }
                                 }
                                 // Double
-                                if(getPropertyType(template).toLowerCase().equals("double")) {
+                                if (getPropertyType(template).toLowerCase().equals("double")) {
                                     try {
                                         Double.valueOf(o.toString());
                                     } catch (Exception e) {
@@ -179,7 +179,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                                     }
                                 }
                                 // Integer
-                                if(getPropertyType(template).toLowerCase().equals("integer")) {
+                                if (getPropertyType(template).toLowerCase().equals("integer")) {
                                     try {
                                         Integer.valueOf(o.toString());
                                     } catch (Exception e) {
@@ -187,7 +187,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                                     }
                                 }
                                 // String
-                                if(getPropertyType(template).toLowerCase().equals("string")) {
+                                if (getPropertyType(template).toLowerCase().equals("string")) {
                                     try {
                                         String.valueOf(o);
                                     } catch (Exception e) {
@@ -195,26 +195,64 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                                     }
                                 }
                                 // Char
-                                if(getPropertyType(template).toLowerCase().equals("char")) {
+                                if (getPropertyType(template).toLowerCase().equals("char")) {
                                     try {
-                                        String.valueOf((char)o);
+                                        String.valueOf((char) o);
                                     } catch (Exception e) {
                                         throw new IntegrityConstraintViolationException("The datatype property defined as (" + template.nodeProperties + ") required");
                                     }
                                 }
-
                             }
                         }
                     }
                 }
                 break;
             case Math:
+                for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
+                    Node node = item.next();
+                    Iterator<Label> ll = node.getLabels().iterator();
+                    while (ll.hasNext()) {
+                        if (ll.next().name().equals(template.nodeLabel)) {
+                            if (node.hasProperty(getPropertyName(template))) {
+                                Object o = node.getProperty(getPropertyName(template));
+                                if(NumberUtils.isNumber(o.toString()))
+                                {
+                                    switch (getMathSymbol(template))
+                                    {
+                                        case "<":
+                                            if(!(NumberUtils.createDouble(o.toString()) < NumberUtils.createDouble(getPropertyValue(template))))
+                                                throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
+                                            break;
+                                        case ">":
+                                            if(!(NumberUtils.createDouble(o.toString()) > NumberUtils.createDouble(getPropertyValue(template))))
+                                                throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
+                                            break;
+                                        case "<=":
+                                            if(!(NumberUtils.createDouble(o.toString()) <= NumberUtils.createDouble(getPropertyValue(template))))
+                                                throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
+                                            break;
+                                        case ">=":
+                                            if(!(NumberUtils.createDouble(o.toString()) >= NumberUtils.createDouble(getPropertyValue(template))))
+                                                throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
+                                            break;
+                                        case "==":
+                                            if(!(NumberUtils.createDouble(o.toString()) == NumberUtils.createDouble(getPropertyValue(template))))
+                                                throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
+                                            break;
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+                }
                 break;
             case Regex:
                 break;
             case Error:
                 throw new IntegrityConstraintViolationException("Not recognized the integrity constraint type...Try again...");
         }
+
         return "OK";
     }
 
@@ -226,7 +264,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
         if (temp1.length == temp2.length)
             return TemplateType.Mandatory;
         // Math
-        if (temp1[1].contentEquals("<") || temp1[1].contentEquals(">") || temp1[1].contentEquals("<=") || temp1[1].contentEquals(">=") || temp1[1].contentEquals(">="))
+        if (temp1[1].contentEquals("<") || temp1[1].contentEquals(">") || temp1[1].contentEquals("<=") || temp1[1].contentEquals(">=") || temp1[1].contentEquals("=="))
             return TemplateType.Math;
         // Data type and regex
         if (temp1[1].toLowerCase().contentEquals("as")) {
@@ -259,5 +297,21 @@ public class SchemaConfiguration implements ISchemaConfiguration {
 
     private String getPropertyType(RelationshipTemplate template) {
         return template.relationshipProperties.split(" ")[3];
+    }
+
+    private String getMathSymbol(NodeTemplate template) {
+        return template.nodeProperties.split(" ")[1];
+    }
+
+    private String getMathSymbol(RelationshipTemplate template) {
+        return template.relationshipProperties.split(" ")[1];
+    }
+
+    private String getPropertyValue(NodeTemplate template) {
+        return template.nodeProperties.split(" ")[2];
+    }
+
+    private String getPropertyValue(RelationshipTemplate template) {
+        return template.relationshipProperties.split(" ")[2];
     }
 }

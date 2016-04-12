@@ -56,7 +56,7 @@ public class ICTests {
         NodeTemplate constraintUserEmailMandatory = new NodeTemplate("User", "email", "notNullMail", "exists", "validate", "deferred", "restrict", "restrict", false);
         NodeTemplate constraintPropVal = new NodeTemplate("User", "email = abc", "'notNullMail", "exists", "validate", "deferred", "restrict", "restrict", false);
         NodeTemplate constraintPerson = new NodeTemplate("p:Person", "p:username", "icUniquePerson", "unique", "validate", "deferred", "restrict", "restrict", false);
-        NodeTemplate constraintBoolProp = new NodeTemplate("User", "active AS long", "boolActive", "exists", "validate", "deferred", "restrict", "restrict", false);
+        NodeTemplate constraintBoolProp = new NodeTemplate("User", "active < 0", "boolActive", "exists", "validate", "deferred", "restrict", "restrict", false);
 
         nodeConf.addNodeTemplate(constraintBoolProp);
         nodeConf.addNodeTemplate(constraintPropVal);
@@ -130,7 +130,7 @@ public class ICTests {
                 }
             });
             jiri.setProperty("name", "Jiri");
-            jiri.setProperty("active", "true");
+            jiri.setProperty("active", 0);
 
             michal.createRelationshipTo(jiri, DynamicRelationshipType.withName("FRIEND"));
 
