@@ -154,12 +154,20 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                     while (ll.hasNext()) {
                         if (ll.next().name().equals(template.nodeLabel)) {
                             if (node.hasProperty(getPropertyName(template))) {
-                                // Boolean
                                 Object o = node.getProperty(getPropertyName(template));
+                                // Boolean
                                 if(getPropertyType(template).toLowerCase().equals("boolean"))
                                 {
                                     if(!Boolean.valueOf(o.toString()))
                                         throw new IntegrityConstraintViolationException("The datatype property defined as " + template.nodeProperties + " required");
+                                }
+                                // Long
+                                if(getPropertyType(template).toLowerCase().equals("long")) {
+                                    try {
+                                        Long.valueOf(o.toString());
+                                    } catch (Exception e) {
+                                        throw new IntegrityConstraintViolationException("The datatype property defined as (" + template.nodeProperties + ") required");
+                                    }
                                 }
                             }
                         }
