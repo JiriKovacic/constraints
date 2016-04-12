@@ -146,6 +146,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
             Object obj2 = null;
             for (Iterator<Node> node1 = transactionData.createdNodes().iterator(); node1.hasNext(); ) {
                 Node node = node1.next();
+                obj1 = node.getProperty(getPropertyName(template));
                 Iterator<Label> ll1 = node.getLabels().iterator();
                 while (ll1.hasNext()) {
                     if (ll1.next().name().equals(template.nodeLabel)) {
@@ -158,7 +159,6 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                                         if (anotherNode.hasProperty(getPropertyName(template))) {
                                             if(node.getId() != anotherNode.getId())
                                             {
-                                                obj1 = node.getProperty(getPropertyName(template));
                                                 obj2 = anotherNode.getProperty(getPropertyName(template));
                                                 if(obj1.equals(obj2))
                                                     throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at " + template.nodeProperties + ", duplicity value: " + obj1.toString() + " ");
