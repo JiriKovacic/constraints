@@ -53,9 +53,12 @@ public class ICTests {
         Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
         // Defining integrity constraints for nodes
         NodeTemplate constraintUserUnique = new NodeTemplate("u:User", "u:email", "icUniqueUser", "unique", "validate", "deferred", "restrict", "restrict", false);
-        NodeTemplate constraintUserEmailMandatory = new NodeTemplate("User", "email", "'notNullMail", "exists", "validate", "deferred", "restrict", "restrict", false);
+        NodeTemplate constraintUserEmailMandatory = new NodeTemplate("User", "email", "notNullMail", "exists", "validate", "deferred", "restrict", "restrict", false);
         NodeTemplate constraintPropVal = new NodeTemplate("User", "email = abc", "'notNullMail", "exists", "validate", "deferred", "restrict", "restrict", false);
         NodeTemplate constraintPerson = new NodeTemplate("p:Person", "p:username", "icUniquePerson", "unique", "validate", "deferred", "restrict", "restrict", false);
+        NodeTemplate constraintBoolProp = new NodeTemplate("User", "active AS Boolean", "boolActive", "exists", "validate", "deferred", "restrict", "restrict", false);
+
+        nodeConf.addNodeTemplate(constraintBoolProp);
         nodeConf.addNodeTemplate(constraintPropVal);
         nodeConf.addNodeTemplate(constraintUserUnique);
         nodeConf.addNodeTemplate(constraintUserEmailMandatory);
@@ -127,6 +130,7 @@ public class ICTests {
                 }
             });
             jiri.setProperty("name", "Jiri");
+            jiri.setProperty("active", "true");
 
             michal.createRelationshipTo(jiri, DynamicRelationshipType.withName("FRIEND"));
 

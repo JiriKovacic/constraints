@@ -16,6 +16,7 @@ import java.util.List;
 /**
  * Created by Jirka on 9. 4. 2016.
  */
+
 public class SchemaConfiguration implements ISchemaConfiguration {
     protected ConfigurationFactory configurationFactory = new ConfigurationFactory();
     private Configuration nodeConfiguration = new NodeConfiguration();
@@ -75,7 +76,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
 
     @Override
     public String enforce(TransactionData transactionData) {
-        if (transactionData != null)
+        if (transactionData == null)
             throw new IllegalArgumentException("No transaction data");
         // Disable this print
         printAllConfigurations(getAllConfiguration());
@@ -112,7 +113,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
         return message;
     }
 
-    // For unique data
+    // For unique clause data
     private String validate(TransactionData transactionData) throws IntegrityConstraintViolationException {
 
         if (transactionData != null) {
@@ -129,6 +130,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
         return "OK";
     }
 
+    // For exists clause data
     private String validate(TransactionData transactionData, NodeTemplate template) throws IntegrityConstraintViolationException {
 
         // Determine a template type
@@ -150,9 +152,16 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                     Node node = item.next();
                     Iterator<Label> ll = node.getLabels().iterator();
                     while (ll.hasNext()) {
-                        if (ll.next().name() == template.nodeLabel) {
-                            if (!node.hasProperty(template.nodeProperties))
-                                throw new IntegrityConstraintViolationException("The datatype property defined as " + template.nodeProperties + " required");
+                        if (ll.next().name().equals(template.nodeLabel)) {
+                            if (node.hasProperty(getPropertyName(template))) {
+                                // Boolean
+                                Object o = node.getProperty(getPropertyName(template));
+                                if(getPropertyType(template).toLowerCase().equals("boolean"))
+                                {
+                                    if(!Boolean.valueOf(o.toString()))
+                                        throw new IntegrityConstraintViolationException("The datatype property defined as " + template.nodeProperties + " required");
+                                }
+                            }
                         }
                     }
                 }
@@ -161,6 +170,8 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                 break;
             case Regex:
                 break;
+            case Error:
+                throw new IntegrityConstraintViolationException("Not recognized the integrity constraint type...Try again...");
         }
         return "OK";
     }
@@ -168,15 +179,16 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     private TemplateType icType(NodeTemplate template) {
         String[] temp1 = template.nodeProperties.split(" ");
         String[] temp2 = template.nodeProperties.split("AS");
+        System.out.println(temp1[0] + " " + temp1[1] + " " + temp1[2]);
         // Regular property
         if (temp1.length == temp2.length)
             return TemplateType.Mandatory;
         // Math
-        if (temp1[1] == "<" || temp1[1] == ">" || temp1[1] == "<=" || temp1[1] == ">=" || temp1[1] == ">=")
+        if (temp1[1].contentEquals("<") || temp1[1].contentEquals(">") || temp1[1].contentEquals("<=") || temp1[1].contentEquals(">=") || temp1[1].contentEquals(">="))
             return TemplateType.Math;
         // Data type and regex
-        if (temp2[1] == "AS") {
-            if (temp2[2].toLowerCase() == "boolean" || temp2[2].toLowerCase() == "long" || temp2[2].toLowerCase() == "double" || temp2[2].toLowerCase() == "string" || temp2[2].toLowerCase() == "char" || temp2[2].toLowerCase().contains("list"))
+        if (temp1[1].toLowerCase().contentEquals("as")) {
+            if (temp1[2].toLowerCase().contentEquals("boolean") || temp1[2].toLowerCase().contentEquals("long") || temp1[2].toLowerCase().contentEquals("double") || temp1[2].toLowerCase().contentEquals("string") || temp1[2].toLowerCase().contentEquals("char") || temp1[2].toLowerCase().contains("list"))
                 return TemplateType.Datatype;
             else
                 return TemplateType.Regex;
@@ -197,5 +209,13 @@ public class SchemaConfiguration implements ISchemaConfiguration {
 
     private String getPropertyName(RelationshipTemplate template) {
         return template.relationshipProperties.split(" ")[0];
+    }
+
+    private String getPropertyType(NodeTemplate template) {
+        return template.nodeProperties.split(" ")[2];
+    }
+
+    private String getPropertyType(RelationshipTemplate template) {
+        return template.relationshipProperties.split(" ")[3];
     }
 }
