@@ -7,19 +7,59 @@ import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
+import org.neo4j.kernel.impl.factory.GraphDatabaseFacade;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.io.File;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
+import static com.graphaware.common.util.DatabaseUtils.registerShutdownHook;
 
 /**
  * Created by Jirka on 9. 4. 2016.
  */
 public class ICTests {
 
+    private static String path = "C:\\Users\\Jirka\\Documents\\Neo4j\\default.graphdb";
+
     @Test
-    public void schemaEnforcement() {
+    public void clearDB() {
+        GraphDatabaseService database = new TestGraphDatabaseFactory().newEmbeddedDatabase(new File(path));
+        registerShutdownHook(database);
+        try (Transaction tx = database.beginTx()) {
+            database.execute("MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE n,r;");
+            tx.success();
+        } catch (Exception e) {
+            System.out.println("Failed for some reason: " + e.getMessage());
+            e.printStackTrace();
+        }
+        GraphUnit.printGraph(database);
+        database.shutdown();
+    }
+
+    @Test
+    public void loadInitialData() {
+        GraphDatabaseService database = new TestGraphDatabaseFactory().newEmbeddedDatabase(new File(path));
+        registerShutdownHook(database);
+
+        try (Transaction tx = database.beginTx()) {
+            database.execute("create (u:User {name:'Pepa', email:'pepa@test.com'})");
+            database.execute("create (u:User {name:'Honza', email:'honza@test.com'})");
+            database.execute("create (u:User {name:'Jirka', email:'jirka@test.com'})");
+            database.execute("create (u:User {name:'Pavel', email:'pavel@test.com'})");
+            tx.success();
+        } catch (Exception e) {
+            System.out.println("Failed for some reason: " + e.getMessage());
+            e.printStackTrace();
+        }
+        GraphUnit.printGraph(database);
+        database.shutdown();
+    }
+
+    @Test
+    public void schemaDefinition() {
         SchemaConfiguration schemaConfiguration = new SchemaConfiguration();
         // Choosing configuration type
         Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
@@ -39,16 +79,15 @@ public class ICTests {
         // configuration.registerConfiguration(null, relationshipConf);
         // configuration.registerConfiguration(nodeConf, null);
 
-        /*List<JSONObject> ics = schemaConfiguration.getAllConfiguration();
+        List<JSONObject> ics = schemaConfiguration.getAllConfiguration();
         Iterator<JSONObject> iterator = ics.iterator();
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             System.out.println(iterator.next());
-        }*/
+        }
     }
 
     @Test
-    public void schemaTests()
-    {
+    public void schemaTests() {
         SchemaConfiguration schemaConfiguration = new SchemaConfiguration();
         Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
         // Defining integrity constraints for nodes
@@ -70,7 +109,9 @@ public class ICTests {
         nodeConf.addNodeTemplate(constraintUserUnique);
         schemaConfiguration.registerConfiguration(nodeConf, null);
 
-        GraphDatabaseService database = new TestGraphDatabaseFactory().newImpermanentDatabase();
+        //GraphDatabaseService database = new TestGraphDatabaseFactory().newImpermanentDatabase();
+        GraphDatabaseService database = new TestGraphDatabaseFactory().newEmbeddedDatabase(new File(path));
+        registerShutdownHook(database);
 
         database.registerTransactionEventHandler(new TransactionEventHandler<Void>() {
             @Override
@@ -79,7 +120,7 @@ public class ICTests {
                 //Iterator<Node> iterator = transactionData.createdNodes().iterator();
                 String temp = schemaConfiguration.enforce(transactionData);
                 System.out.println(temp);
-                if(temp.toLowerCase() != "ok")
+                if (!temp.toLowerCase().equals("ok"))
                     throw new RuntimeException(temp);
                 /*while(iterator.hasNext()) {
                     Node node = iterator.next();
@@ -102,7 +143,7 @@ public class ICTests {
 
         try (Transaction tx = database.beginTx()) {
 
-            Node michal = database.createNode();
+            /*Node michal = database.createNode();
             michal.addLabel(new Label() {
                 @Override
                 public String name() {
@@ -130,15 +171,42 @@ public class ICTests {
             jiri.setProperty("active", 0);
             jiri.setProperty("email", "example@test.com");
 
-            michal.createRelationshipTo(jiri, DynamicRelationshipType.withName("FRIEND"));
+            michal.createRelationshipTo(jiri, DynamicRelationshipType.withName("FRIEND"));*/
 
-            Result res = database.execute("create (u:User {name:'Pepa', email:'test@test.com'})");
+            //database.execute("create (u:User {name:'Pepa', email:'pepa@test.com'})");
+            //database.execute("create (u:User {name:'Honza', email:'honza@test.com'})");
+            //database.execute("create (u:User {name:'Jirka', email:'jirka@test.com'})");
+            //database.execute("create (u:User {name:'Pavel', email:'pavel@test.com'})");
+            database.execute("MATCH (u:User { name: 'Jirka' }) SET u.name = 'Taylor'");
 
             tx.success();
         } catch (Exception e) {
             System.out.println("Failed for some reason: " + e.getMessage());
             e.printStackTrace();
         }
+        GraphUnit.printGraph(database);
 
+        /*try (Transaction tx = database.beginTx()) {
+            database.execute("create (u:User {name:'Jirka', email:'jirka@test.com'})");
+        } catch (Exception e) {
+            System.out.println("Failed for some reason: " + e.getMessage());
+            e.printStackTrace();
+        }*/
+
+        database.shutdown();
+    }
+
+    @Test
+    public void databaseTest() {
+        String path = "C:\\Users\\Jirka\\Documents\\Neo4j\\default.graphdb";
+        GraphDatabaseService database = new TestGraphDatabaseFactory().newEmbeddedDatabase(new File(path));
+        registerShutdownHook(database);
+        try (Transaction tx = database.beginTx()) {
+            database.execute("match (n) return n;");
+            // Database operations go here
+            tx.success();
+        }
+        GraphUnit.printGraph(database);
+        database.shutdown();
     }
 }

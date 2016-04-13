@@ -4,9 +4,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.json.JSONObject;
 import org.neo4j.cypher.internal.compiler.v1_9.parser.ParserPattern;
 import org.neo4j.cypher.internal.compiler.v2_2.ast.In;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.kernel.api.Neo4jTypes;
 import sun.awt.ConstrainableGraphics;
@@ -93,25 +91,6 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                 //e.printStackTrace();
                 System.out.println(e.getMessage());
             }
-            /*if (template.action.toLowerCase().equals("unique")) {
-                // do for unique
-                try {
-                    message = validate(transactionData, template);
-                } catch (IntegrityConstraintViolationException e) {
-                    //e.printStackTrace();
-                    System.out.println(e.getMessage());
-                }
-            } else if (template.action.toLowerCase().equals("exists")) {
-                // do for others
-                try {
-                    message = validate(transactionData, template);
-                } catch (IntegrityConstraintViolationException e) {
-                    //e.printStackTrace();
-                    //System.out.println(message = e.getMessage());
-                    message = e.getMessage();
-                    break;
-                }
-            }*/
         }
 
         // Validation for relationships
@@ -120,30 +99,12 @@ public class SchemaConfiguration implements ISchemaConfiguration {
         return message;
     }
 
-    // For unique clause data
-    /*private String validate(TransactionData transactionData, NodeTemplate template) throws IntegrityConstraintViolationException {
-
-        for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
-            Node node = item.next();
-            Iterator<Label> ll = node.getLabels().iterator();
-            while (ll.hasNext()) {
-                if (ll.next().name().equals(template.nodeLabel)) {
-                    if (node.hasProperty(getPropertyName(template))) {
-                        Object o = node.getProperty(getPropertyName(template));
-                    }
-                }
-            }
-        }
-        throw new IntegrityConstraintViolationException("Error");
-
-        //return "OK";
-    }*/
-
     // For exists clause data
     private String validate(TransactionData transactionData, NodeTemplate template) throws IntegrityConstraintViolationException {
         if (template.action.toLowerCase().equals("unique")) {
             Object obj1 = null;
             Object obj2 = null;
+            // Only transactionData validation
             for (Iterator<Node> node1 = transactionData.createdNodes().iterator(); node1.hasNext(); ) {
                 Node node = node1.next();
                 obj1 = node.getProperty(getPropertyName(template));
@@ -157,10 +118,9 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                                 while (ll2.hasNext()) {
                                     if (ll2.next().name().equals(template.nodeLabel)) {
                                         if (anotherNode.hasProperty(getPropertyName(template))) {
-                                            if(node.getId() != anotherNode.getId())
-                                            {
+                                            if (node.getId() != anotherNode.getId()) {
                                                 obj2 = anotherNode.getProperty(getPropertyName(template));
-                                                if(obj1.equals(obj2))
+                                                if (obj1.equals(obj2))
                                                     throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at " + template.nodeProperties + ", duplicity value: " + obj1.toString() + " ");
                                             }
                                         } /*else
@@ -173,12 +133,28 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                     }
                 }
             }
-        } else if (template.action.toLowerCase().
+            GraphDatabaseService database = transactionData.createdNodes().iterator().next().getGraphDatabase();
 
-                equals("exists")
-
-                )
-
+            // Validation transactionData with database
+            for (Iterator<Node> node1 = transactionData.createdNodes().iterator(); node1.hasNext(); ) {
+                Node node = node1.next();
+                obj1 = node.getProperty(getPropertyName(template));
+                Iterator<Label> ll1 = node.getLabels().iterator();
+                while (ll1.hasNext()) {
+                    if (ll1.next().name().equals(template.nodeLabel)) {
+                        if (node.hasProperty(getPropertyName(template))) {
+                            try (Transaction tx = database.beginTx()) {
+                                Node n = database.getNodeById(1);
+                                System.out.println(n.getLabels().iterator().next() + n.getPropertyKeys().iterator().next());
+                            } catch (Exception e) {
+                                System.out.println("Failed unique validation with DB " + e.getMessage());
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+            }
+        } else if (template.action.toLowerCase().equals("exists"))
         {
             // Determine a template type
             switch (icType(template)) {
