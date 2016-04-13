@@ -22,6 +22,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     protected ConfigurationFactory configurationFactory = new ConfigurationFactory();
     private Configuration nodeConfiguration = new NodeConfiguration();
     private Configuration relatinshipConfiguration = new RelationshipConfiguration();
+    private GraphDatabaseService databaseService = null;
 
     @Override
     public List<JSONObject> getAllConfiguration() {
@@ -76,9 +77,10 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     }
 
     @Override
-    public String enforce(TransactionData transactionData) {
+    public String enforce(TransactionData transactionData, GraphDatabaseService database) {
         if (transactionData == null)
             throw new IllegalArgumentException("No transaction data");
+        this.databaseService = database;
         // Disable this print
         printAllConfigurations(getAllConfiguration());
         String message = "";
@@ -303,7 +305,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
             }
         }
         // Check created nodes with database - not working
-        GraphDatabaseService database = transactionData.createdNodes().iterator().next().getGraphDatabase();
+        //GraphDatabaseService database = transactionData.createdNodes().iterator().next().getGraphDatabase();
         for (Iterator<Node> node1 = transactionData.createdNodes().iterator(); node1.hasNext(); ) {
             Node node = node1.next();
             obj1 = node.getProperty(getPropertyName(template));
@@ -312,12 +314,12 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                 Label lab1 = ll1.next();
                 if (lab1.name().equals(template.nodeLabel)) {
                     if (node.hasProperty(getPropertyName(template))) {
-                        try (Transaction tx = database.beginTx()) {
+                        try (Transaction tx = this.databaseService.beginTx()) {
                             //Node n = database.findNode(lab1, getPropertyName(template), node.getProperty(getPropertyName(template)));
-                            ResourceIterator<Node> rin = database.findNodes(lab1);
+                            ResourceIterator<Node> rin = this.databaseService.findNodes(lab1);
                             while (rin.hasNext()) {
                                 System.out.println(rin.next().getProperty(getPropertyName(template)));
-                                System.out.println(/*node.getId() + */" " + rin.next().getId());
+                                //System.out.println(/*node.getId() + */" " + rin.next().getId());
                                 /*Node temp = rin.next();
                                 if (node.getId() != temp.getId()) {
                                     if (node.getProperty(getPropertyName(template)).equals(temp.getProperty(getPropertyName(template)))) {

@@ -118,7 +118,7 @@ public class ICTests {
             public Void beforeCommit(TransactionData transactionData) throws Exception {
 
                 //Iterator<Node> iterator = transactionData.createdNodes().iterator();
-                String temp = schemaConfiguration.enforce(transactionData);
+                String temp = schemaConfiguration.enforce(transactionData, database);
                 System.out.println(temp);
                 if (!temp.toLowerCase().equals("ok"))
                     throw new RuntimeException(temp);
