@@ -175,10 +175,10 @@ public class ICTests {
 
             //database.execute("create (u:User {name:'Pepa', email:'pepa@test.com'})");
             //database.execute("create (u:User {name:'Honza', email:'honza@test.com'})");
-            //database.execute("create (u:User {name:'Jirka', email:'jirka@test.com'})");
+            database.execute("create (u:User {name:'Amalka', email:'amalka@test.com'})");
             //database.execute("create (u:User {name:'Pavel', email:'pavel@test.com'})");
             //database.execute("MATCH (u:User { name: 'Jirka' }) SET u.name = 'Taylor'");
-            database.execute("MATCH (u:User) SET u.name = 'Taylor'");
+            //database.execute("MATCH (u:User) SET u.name = 'Taylor'");
 
             tx.success();
         } catch (Exception e) {

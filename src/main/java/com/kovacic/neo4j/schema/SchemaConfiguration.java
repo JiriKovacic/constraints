@@ -103,61 +103,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     // For exists clause data
     private String validate(TransactionData transactionData, NodeTemplate template) throws IntegrityConstraintViolationException {
         if (template.action.toLowerCase().equals("unique")) {
-            unique(transactionData, template);
-
-
-            Object obj1 = null;
-            Object obj2 = null;
-            // Only transactionData validation
-            for (Iterator<Node> node1 = transactionData.createdNodes().iterator(); node1.hasNext(); ) {
-                Node node = node1.next();
-                obj1 = node.getProperty(getPropertyName(template));
-                Iterator<Label> ll1 = node.getLabels().iterator();
-                while (ll1.hasNext()) {
-                    if (ll1.next().name().equals(template.nodeLabel)) {
-                        if (node.hasProperty(getPropertyName(template))) {
-                            for (Iterator<Node> node2 = transactionData.createdNodes().iterator(); node2.hasNext(); ) {
-                                Node anotherNode = node2.next();
-                                Iterator<Label> ll2 = anotherNode.getLabels().iterator();
-                                while (ll2.hasNext()) {
-                                    if (ll2.next().name().equals(template.nodeLabel)) {
-                                        if (anotherNode.hasProperty(getPropertyName(template))) {
-                                            if (node.getId() != anotherNode.getId()) {
-                                                obj2 = anotherNode.getProperty(getPropertyName(template));
-                                                if (obj1.equals(obj2))
-                                                    throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at " + template.nodeProperties + ", duplicity value: " + obj1.toString() + " ");
-                                            }
-                                        } /*else
-                                            throw new IntegrityConstraintViolationException("The UNIQUE constraint must contain a property " + template.nodeProperties);*/
-                                    }
-                                }
-                            }
-                        } else
-                            throw new IntegrityConstraintViolationException("The UNIQUE constraint must contain a property " + template.nodeProperties);
-                    }
-                }
-            }
-            //GraphDatabaseService database = transactionData.createdNodes().iterator().next().getGraphDatabase();
-
-            // Validation transactionData with database
-            for (Iterator<Node> node1 = transactionData.createdNodes().iterator(); node1.hasNext(); ) {
-                Node node = node1.next();
-                obj1 = node.getProperty(getPropertyName(template));
-                Iterator<Label> ll1 = node.getLabels().iterator();
-                while (ll1.hasNext()) {
-                    if (ll1.next().name().equals(template.nodeLabel)) {
-                        if (node.hasProperty(getPropertyName(template))) {
-                            /*try (Transaction tx = database.beginTx()) {
-                                Node n = database.getNodeById(1);
-                                System.out.println(n.getLabels().iterator().next() + n.getPropertyKeys().iterator().next());
-                            } catch (Exception e) {
-                                System.out.println("Failed unique validation with DB " + e.getMessage());
-                                e.printStackTrace();
-                            }*/
-                        }
-                    }
-                }
-            }
+            return unique(transactionData, template);
         } else if (template.action.toLowerCase().equals("exists")) {
             // Determine a template type
             switch (icType(template)) {
@@ -356,11 +302,44 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                 }
             }
         }
+        // Check created nodes with database - not working
+        GraphDatabaseService database = transactionData.createdNodes().iterator().next().getGraphDatabase();
+        for (Iterator<Node> node1 = transactionData.createdNodes().iterator(); node1.hasNext(); ) {
+            Node node = node1.next();
+            obj1 = node.getProperty(getPropertyName(template));
+            Iterator<Label> ll1 = node.getLabels().iterator();
+            while (ll1.hasNext()) {
+                Label lab1 = ll1.next();
+                if (lab1.name().equals(template.nodeLabel)) {
+                    if (node.hasProperty(getPropertyName(template))) {
+                        try (Transaction tx = database.beginTx()) {
+                            //Node n = database.findNode(lab1, getPropertyName(template), node.getProperty(getPropertyName(template)));
+                            ResourceIterator<Node> rin = database.findNodes(lab1);
+                            while (rin.hasNext()) {
+                                System.out.println(rin.next().getProperty(getPropertyName(template)));
+                                System.out.println(/*node.getId() + */" " + rin.next().getId());
+                                /*Node temp = rin.next();
+                                if (node.getId() != temp.getId()) {
+                                    if (node.getProperty(getPropertyName(template)).equals(temp.getProperty(getPropertyName(template)))) {
+                                        tx.failure();
+                                        tx.close();
+                                        throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at " + template.nodeProperties + ", duplicity value: " + node.getProperty(getPropertyName(template)) + " ");
+                                    }
+                                }*/
+                            }
+                            //tx.success();
+                        } catch (Exception e) {
+                            throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at " + template.nodeProperties + ", duplicity value: " + node.getProperty(getPropertyName(template)) + " ");
+                            //System.out.println("Failed unique validation with DB -> (Check created nodes with database failed): " + e.getMessage());
+                            //e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }
 
-
-// Check created nodes with database
 // Check updated nodeValues with database
-        return null;
+        return "ok";
     }
 
     private TemplateType icType(NodeTemplate template) {
