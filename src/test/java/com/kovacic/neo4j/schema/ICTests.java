@@ -105,7 +105,7 @@ public class ICTests {
         schemaConfiguration.registerConfiguration(nodeConf, null);*/
 
         // Unique test
-        NodeTemplate constraintUserUnique = new NodeTemplate("User", "email", "icUniqueUser", "unique", "validate", "deferred", "restrict", "restrict", false);
+        NodeTemplate constraintUserUnique = new NodeTemplate("User", "name", "icUniqueUser", "unique", "validate", "deferred", "restrict", "restrict", false);
         nodeConf.addNodeTemplate(constraintUserUnique);
         schemaConfiguration.registerConfiguration(nodeConf, null);
 
@@ -177,7 +177,8 @@ public class ICTests {
             //database.execute("create (u:User {name:'Honza', email:'honza@test.com'})");
             //database.execute("create (u:User {name:'Jirka', email:'jirka@test.com'})");
             //database.execute("create (u:User {name:'Pavel', email:'pavel@test.com'})");
-            database.execute("MATCH (u:User { name: 'Jirka' }) SET u.name = 'Taylor'");
+            //database.execute("MATCH (u:User { name: 'Jirka' }) SET u.name = 'Taylor'");
+            database.execute("MATCH (u:User) SET u.name = 'Taylor'");
 
             tx.success();
         } catch (Exception e) {

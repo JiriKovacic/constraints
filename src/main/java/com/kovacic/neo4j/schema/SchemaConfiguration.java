@@ -5,6 +5,7 @@ import org.json.JSONObject;
 import org.neo4j.cypher.internal.compiler.v1_9.parser.ParserPattern;
 import org.neo4j.cypher.internal.compiler.v2_2.ast.In;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.event.PropertyEntry;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.kernel.api.Neo4jTypes;
 import sun.awt.ConstrainableGraphics;
@@ -102,6 +103,9 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     // For exists clause data
     private String validate(TransactionData transactionData, NodeTemplate template) throws IntegrityConstraintViolationException {
         if (template.action.toLowerCase().equals("unique")) {
+            unique(transactionData, template);
+
+
             Object obj1 = null;
             Object obj2 = null;
             // Only transactionData validation
@@ -133,7 +137,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                     }
                 }
             }
-            GraphDatabaseService database = transactionData.createdNodes().iterator().next().getGraphDatabase();
+            //GraphDatabaseService database = transactionData.createdNodes().iterator().next().getGraphDatabase();
 
             // Validation transactionData with database
             for (Iterator<Node> node1 = transactionData.createdNodes().iterator(); node1.hasNext(); ) {
@@ -143,19 +147,18 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                 while (ll1.hasNext()) {
                     if (ll1.next().name().equals(template.nodeLabel)) {
                         if (node.hasProperty(getPropertyName(template))) {
-                            try (Transaction tx = database.beginTx()) {
+                            /*try (Transaction tx = database.beginTx()) {
                                 Node n = database.getNodeById(1);
                                 System.out.println(n.getLabels().iterator().next() + n.getPropertyKeys().iterator().next());
                             } catch (Exception e) {
                                 System.out.println("Failed unique validation with DB " + e.getMessage());
                                 e.printStackTrace();
-                            }
+                            }*/
                         }
                     }
                 }
             }
-        } else if (template.action.toLowerCase().equals("exists"))
-        {
+        } else if (template.action.toLowerCase().equals("exists")) {
             // Determine a template type
             switch (icType(template)) {
                 case Mandatory:
@@ -284,8 +287,80 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                     throw new IntegrityConstraintViolationException("Not recognized the integrity constraint type...Try again...");
             }
         }
-
         return "OK";
+    }
+
+    private String unique(TransactionData transactionData, NodeTemplate template) throws IntegrityConstraintViolationException {
+        Object obj1 = null;
+        Object obj2 = null;
+        // Check created nodes in transactionData
+        for (Iterator<Node> node1 = transactionData.createdNodes().iterator(); node1.hasNext(); ) {
+            Node node = node1.next();
+            obj1 = node.getProperty(getPropertyName(template));
+            Iterator<Label> ll1 = node.getLabels().iterator();
+            while (ll1.hasNext()) {
+                if (ll1.next().name().equals(template.nodeLabel)) {
+                    if (node.hasProperty(getPropertyName(template))) {
+                        for (Iterator<Node> node2 = transactionData.createdNodes().iterator(); node2.hasNext(); ) {
+                            Node anotherNode = node2.next();
+                            Iterator<Label> ll2 = anotherNode.getLabels().iterator();
+                            while (ll2.hasNext()) {
+                                if (ll2.next().name().equals(template.nodeLabel)) {
+                                    if (anotherNode.hasProperty(getPropertyName(template))) {
+                                        if (node.getId() != anotherNode.getId()) {
+                                            obj2 = anotherNode.getProperty(getPropertyName(template));
+                                            if (obj1.equals(obj2))
+                                                throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at " + template.nodeProperties + ", duplicity value: " + obj1.toString() + " ");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else
+                        throw new IntegrityConstraintViolationException("The UNIQUE constraint must contain a property " + template.nodeProperties);
+                }
+            }
+        }
+        // Check updated nodeValues in transactionData
+        Node tempNode1 = null, tempNode2 = null;
+        String key1 = "", key2 = "";
+        Object value1 = null, value2 = null;
+        for (Iterator<PropertyEntry<Node>> node1 = transactionData.assignedNodeProperties().iterator(); node1.hasNext(); ) {
+            obj1 = node1.next();
+            key1 = ((PropertyEntry<Node>) obj1).key();
+            value1 = ((PropertyEntry<Node>) obj1).value();
+            tempNode1 = ((PropertyEntry<Node>) obj1).entity();
+            Iterator<Label> ll1 = tempNode1.getLabels().iterator();
+            while (ll1.hasNext()) {
+                if (ll1.next().name().equals(template.nodeLabel)) {
+                    if (tempNode1.hasProperty(getPropertyName(template))) {
+                        for (Iterator<PropertyEntry<Node>> node2 = transactionData.assignedNodeProperties().iterator(); node2.hasNext(); ) {
+                            obj2 = node2.next();
+                            key2 = ((PropertyEntry<Node>) obj2).key();
+                            value2 = ((PropertyEntry<Node>) obj2).value();
+                            tempNode2 = ((PropertyEntry<Node>) obj2).entity();
+                            Iterator<Label> ll2 = tempNode2.getLabels().iterator();
+                            while (ll2.hasNext()) {
+                                if (ll2.next().name().equals(template.nodeLabel)) {
+                                    if (tempNode2.hasProperty(getPropertyName(template))) {
+                                        if (tempNode1.getId() != tempNode2.getId()) {
+                                            if (value1.equals(value2))
+                                                throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at " + template.nodeProperties + ", duplicity value: " + obj1.toString() + " ");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else
+                        throw new IntegrityConstraintViolationException("The UNIQUE constraint must contain a property " + template.nodeProperties);
+                }
+            }
+        }
+
+
+// Check created nodes with database
+// Check updated nodeValues with database
+        return null;
     }
 
     private TemplateType icType(NodeTemplate template) {
