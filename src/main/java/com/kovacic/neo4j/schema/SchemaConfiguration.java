@@ -23,6 +23,15 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     private Configuration nodeConfiguration = new NodeConfiguration();
     private Configuration relatinshipConfiguration = new RelationshipConfiguration();
     private GraphDatabaseService databaseService = null;
+    private static SchemaConfiguration schemaConfiguration = null;
+
+    private SchemaConfiguration() {}
+
+    public static SchemaConfiguration getInstance() {
+        if(schemaConfiguration == null)
+            schemaConfiguration = new SchemaConfiguration();
+        return schemaConfiguration;
+    }
 
     @Override
     public List<JSONObject> getAllConfiguration() {

@@ -60,7 +60,7 @@ public class ICTests {
 
     @Test
     public void schemaDefinition() {
-        SchemaConfiguration schemaConfiguration = new SchemaConfiguration();
+        SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
         // Choosing configuration type
         Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
         Configuration relationshipConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.RelationshipConfiguration);
@@ -88,7 +88,7 @@ public class ICTests {
 
     @Test
     public void schemaTests() {
-        SchemaConfiguration schemaConfiguration = new SchemaConfiguration();
+        SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
         Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
         // Defining integrity constraints for nodes
         /*
