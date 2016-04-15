@@ -1,7 +1,7 @@
 package com.kovacic.neo4j.schema;
 
 
-
+import org.jcp.xml.dsig.internal.SignerOutputStream;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -19,8 +19,7 @@ public abstract class Configuration implements IConfiguration {
     private List<NodeTemplate> nodeRecords;
     private List<RelationshipTemplate> relationshipRecords;
 
-    public Configuration()
-    {
+    public Configuration() {
         nodeRecords = new LinkedList<>();
         relationshipRecords = new LinkedList<>();
     }
@@ -31,8 +30,7 @@ public abstract class Configuration implements IConfiguration {
     }
 
     @Override
-    public List<NodeTemplate> getNodeRecords()
-    {
+    public List<NodeTemplate> getNodeRecords() {
         return nodeRecords;
     }
 
@@ -55,8 +53,6 @@ public abstract class Configuration implements IConfiguration {
 
     @Override
     public Boolean loadNodeConfiguration(String path) {
-        File file = new File(path);
-        System.out.println(file.exists());
         nodeJsonParser(path);
         return true;
     }
@@ -66,34 +62,54 @@ public abstract class Configuration implements IConfiguration {
         return null;
     }
 
-    private void nodeJsonParser(String path)
-    {
-        String jsonData = readFile(path);
-        JSONObject obj = new JSONObject(jsonData);
+    private void nodeJsonParser(String path) {
+        readFile(path);
+        /*JSONObject obj = new JSONObject(jsonData);
         System.out.println(obj.length());
-        System.out.println("options: " + obj.get("clause"));
+        System.out.println("options: " + obj.get("name"));*/
+        //System.out.println(jsonData);
     }
 
-    private void relationshipJsonParser(String path)
-    {
+    private void createNodeTemplate(String result) {
+        JSONObject obj = new JSONObject(result);
+        //System.out.println("clause: " + obj.get("clause"));
+        JSONObject opt = new JSONObject(obj.get("options").toString());
+        System.out.println(obj.get("options").toString());//.subSequence(0, obj.get("options").toString().length()));
+        System.out.println(opt.get("final"));
+        /*nodeRecords.add(new NodeTemplate(obj.get("pattern"),
+                obj.get("properties"),
+                obj.get("name"),
+                obj.get("acton"),
+                obj.get("options"),
+                obj.get("options")[0],
+                obj.get("options")[0],
+                obj.get("options")[0],
+                obj.get("options")[0],
+                ));*/
+        //System.out.println(result);
+    }
+
+    private void relationshipJsonParser(String path) {
 
     }
 
-    private String readFile (String path)
-    {
-        String result = "";
+    private void readFile(String path) {
         try {
             BufferedReader br = new BufferedReader(new FileReader(path));
             StringBuilder sb = new StringBuilder();
             String line = br.readLine();
             while (line != null) {
-                sb.append(line);
+                if (!line.equals(""))
+                    sb.append(line);
+                else {
+                    createNodeTemplate(sb.toString());
+                    sb.delete(0, sb.length());
+                }
                 line = br.readLine();
             }
-            result = sb.toString();
-        } catch(Exception e) {
+            createNodeTemplate(sb.toString());
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        return result;
     }
 }
