@@ -87,6 +87,20 @@ public class ICTests {
     }
 
     @Test
+    public void schemaDefinitonLoadJSON()
+    {
+        SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
+        Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
+        nodeConf.loadNodeConfiguration("./schemaConfigurations/nodeConfigs.json");
+        schemaConfiguration.registerConfiguration(nodeConf, null);
+        List<JSONObject> ics = schemaConfiguration.getAllConfiguration();
+        Iterator<JSONObject> iterator = ics.iterator();
+        while (iterator.hasNext()) {
+            System.out.println(iterator.next());
+        }
+    }
+
+    @Test
     public void schemaTests() {
         SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
         Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);

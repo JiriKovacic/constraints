@@ -13,4 +13,6 @@ public interface IConfiguration {
     Configuration getConfiguration();
     Boolean addNodeTemplate(NodeTemplate template);
     Boolean addRelationshipTemplate(RelationshipTemplate template);
+    Boolean loadNodeConfiguration(String path);
+    Boolean loadRelationshipConfiguration(String path);
 }

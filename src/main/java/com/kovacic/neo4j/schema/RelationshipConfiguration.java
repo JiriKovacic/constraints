@@ -11,4 +11,9 @@ public class RelationshipConfiguration extends Configuration {
     public Configuration getConfiguration() {
         return super.getConfiguration();
     }
+
+    @Override
+    public Boolean loadRelationshipConfiguration(String path) {
+        return super.loadRelationshipConfiguration(path);
+    }
 }
