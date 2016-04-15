@@ -1,0 +1,29 @@
+{
+  "clause": "CREATE",
+  "name": "icUniqueUser",
+  "pattern": "User",
+  "action": "UNIQUE",
+  "properties": "email",
+  "options": {
+    "enable": "VALIDATE",
+    "validation": "DEFERRED",
+    "delete": "STRICT",
+    "update": "STRICT",
+    "final": false
+  }
+}
+
+{
+  "clause": "CREATE",
+  "name": "icUniquePerson",
+  "pattern": "Person",
+  "action": "UNIQUE",
+  "properties": "username",
+  "options": {
+    "enable": "VALIDATE",
+    "validation": "DEFERRED",
+    "delete": "STRICT",
+    "update": "STRICT",
+    "final": false
+  }
+}
