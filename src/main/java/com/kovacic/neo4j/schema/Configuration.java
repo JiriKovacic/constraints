@@ -1,13 +1,10 @@
 package com.kovacic.neo4j.schema;
 
-
-import org.jcp.xml.dsig.internal.SignerOutputStream;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
+import java.util.InvalidPropertiesFormatException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -53,47 +50,53 @@ public abstract class Configuration implements IConfiguration {
 
     @Override
     public Boolean loadNodeConfiguration(String path) {
-        nodeJsonParser(path);
-        return true;
+        try {
+            nodeJsonParser(path);
+            return true;
+        }
+        catch (IntegrityConstraintViolationException e)
+        {
+            System.out.println(e.getMessage());
+            return false;
+        }
     }
 
     @Override
+    // Not implemented yet
     public Boolean loadRelationshipConfiguration(String path) {
         return null;
     }
 
-    private void nodeJsonParser(String path) {
-        readFile(path);
-        /*JSONObject obj = new JSONObject(jsonData);
-        System.out.println(obj.length());
-        System.out.println("options: " + obj.get("name"));*/
-        //System.out.println(jsonData);
+    private void nodeJsonParser(String path) throws IntegrityConstraintViolationException {
+
+        if (!readFile(path))
+            throw new IntegrityConstraintViolationException("Entered wrong file path " + path);
     }
 
-    private void createNodeTemplate(String result) {
-        JSONObject obj = new JSONObject(result);
-        //System.out.println("clause: " + obj.get("clause"));
-        JSONObject opt = new JSONObject(obj.get("options").toString());
-        System.out.println(obj.get("options").toString());//.subSequence(0, obj.get("options").toString().length()));
-        System.out.println(opt.get("final"));
-        /*nodeRecords.add(new NodeTemplate(obj.get("pattern"),
-                obj.get("properties"),
-                obj.get("name"),
-                obj.get("acton"),
-                obj.get("options"),
-                obj.get("options")[0],
-                obj.get("options")[0],
-                obj.get("options")[0],
-                obj.get("options")[0],
-                ));*/
-        //System.out.println(result);
+    private void createNodeTemplate(String result) throws IntegrityConstraintViolationException {
+        try {
+            JSONObject obj = new JSONObject(result);
+            JSONObject opt = new JSONObject(obj.get("options").toString());
+            nodeRecords.add(new NodeTemplate(obj.get("pattern").toString(),
+                    obj.get("properties").toString(),
+                    obj.get("name").toString(),
+                    obj.get("action").toString(),
+                    opt.get("enable").toString(),
+                    opt.get("validation").toString(),
+                    opt.get("delete").toString(),
+                    opt.get("update").toString(),
+                    Boolean.valueOf(opt.get("final").toString())));
+        } catch (Exception ex) {
+            throw new IntegrityConstraintViolationException("Integrity constraint from .json file not loaded properly");
+        }
     }
 
+    // Not implemented yet
     private void relationshipJsonParser(String path) {
 
     }
 
-    private void readFile(String path) {
+    private Boolean readFile(String path) {
         try {
             BufferedReader br = new BufferedReader(new FileReader(path));
             StringBuilder sb = new StringBuilder();
@@ -110,6 +113,8 @@ public abstract class Configuration implements IConfiguration {
             createNodeTemplate(sb.toString());
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
+        return true;
     }
 }
