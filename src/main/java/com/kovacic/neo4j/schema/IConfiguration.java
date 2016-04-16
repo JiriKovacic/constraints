@@ -10,7 +10,7 @@ import java.util.List;
 public interface IConfiguration {
     List<NodeTemplate> getNodeRecords();
     List<RelationshipTemplate> getRelationshipRecords();
-    Configuration getConfiguration();
+    List<Configuration> getConfiguration();
     Boolean addNodeTemplate(NodeTemplate template);
     Boolean addRelationshipTemplate(RelationshipTemplate template);
     Boolean loadNodeConfiguration(String path);

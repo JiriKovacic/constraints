@@ -98,6 +98,7 @@ public class ICTests {
         while (iterator.hasNext()) {
             System.out.println(iterator.next());
         }
+        List<Configuration> conf = nodeConf.getConfiguration();
     }
 
     @Test

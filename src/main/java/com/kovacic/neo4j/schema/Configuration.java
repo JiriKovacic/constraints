@@ -32,8 +32,10 @@ public abstract class Configuration implements IConfiguration {
     }
 
     @Override
-    public Configuration getConfiguration() {
-        return null;
+    public List<Configuration> getConfiguration() {
+        List<Configuration> configurations = new LinkedList<>();
+        configurations.add(this);
+        return configurations;
     }
 
     @Override

@@ -11,7 +11,7 @@ import java.util.List;
 public class NodeConfiguration extends Configuration {
 
     @Override
-    public Configuration getConfiguration() {
+    public List<Configuration> getConfiguration() {
         return super.getConfiguration();
     }
 
