@@ -99,6 +99,8 @@ public class ICTests {
             System.out.println(iterator.next());
         }
         List<Configuration> conf = nodeConf.getConfiguration();
+        nodeConf.deleteNodeTemplate("icUniqueUser");
+        List<Configuration> conf2 = nodeConf.getConfiguration();
     }
 
     @Test

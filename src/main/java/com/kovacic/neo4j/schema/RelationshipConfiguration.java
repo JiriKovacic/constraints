@@ -18,4 +18,9 @@ public class RelationshipConfiguration extends Configuration {
     public Boolean loadRelationshipConfiguration(String path) {
         return super.loadRelationshipConfiguration(path);
     }
+
+    @Override
+    public Boolean deleteRelationshipTemplate(String icName) {
+        return super.deleteRelationshipTemplate(icName);
+    }
 }

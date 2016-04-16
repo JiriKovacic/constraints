@@ -15,4 +15,7 @@ public interface IConfiguration {
     Boolean addRelationshipTemplate(RelationshipTemplate template);
     Boolean loadNodeConfiguration(String path);
     Boolean loadRelationshipConfiguration(String path);
+    Boolean deleteConfiguration();
+    Boolean deleteNodeTemplate(String icName);
+    Boolean deleteRelationshipTemplate(String icName);
 }

@@ -20,12 +20,8 @@ public class NodeConfiguration extends Configuration {
         return super.loadNodeConfiguration(path);
     }
 
-    /*@Override
-    public Boolean addNodeTemplate(NodeTemplate template) {
-        System.out.println("NodeConfiguration fires " + template.icName);
-
-        return null;
-    }*/
-
-
+    @Override
+    public Boolean deleteNodeTemplate(String icName) {
+        return super.deleteNodeTemplate(icName);
+    }
 }

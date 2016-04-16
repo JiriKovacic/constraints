@@ -5,6 +5,7 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.InvalidPropertiesFormatException;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -116,6 +117,39 @@ public abstract class Configuration implements IConfiguration {
         } catch (Exception e) {
             e.printStackTrace();
             return false;
+        }
+        return true;
+    }
+
+    @Override
+    public Boolean deleteConfiguration() {
+        this.nodeRecords.clear();
+        this.relationshipRecords.clear();
+        return true;
+    }
+
+    @Override
+    public Boolean deleteNodeTemplate(String icName) {
+        Iterator<NodeTemplate> iter = nodeRecords.iterator();
+        while(iter.hasNext())
+        {
+            if(iter.next().icName.equals(icName)) {
+                iter.remove();
+                break;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public Boolean deleteRelationshipTemplate(String icName) {
+        Iterator<RelationshipTemplate> iter = relationshipRecords.iterator();
+        while(iter.hasNext())
+        {
+            if(iter.next().icName.equals(icName)) {
+                iter.remove();
+                break;
+            }
         }
         return true;
     }
