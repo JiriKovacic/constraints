@@ -345,6 +345,8 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     }
 
     private String mandatory(TransactionData transactionData, NodeTemplate template) throws IntegrityConstraintViolationException {
+        if(template.getIcFinal().equals("true"))
+            return checkFinal(transactionData);
         if(template.validation.toLowerCase().equals("immediate")) {
             if (template.enable.equals("novalidate")) {
                 // Check created node properties
@@ -400,7 +402,6 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                 }
             }
         }
-
         return "ok";
     }
 
@@ -412,6 +413,43 @@ public class SchemaConfiguration implements ISchemaConfiguration {
             }
         }
         return "ok";
+    }
+
+    private String checkFinal(TransactionData transactionData) throws IntegrityConstraintViolationException {
+        Iterator<NodeTemplate> nodeIter = nodeConfiguration.getNodeRecords().iterator();
+        List<String> templateProperties = new LinkedList<>();
+        NodeTemplate template = new NodeTemplate();
+        String message = "";
+        while(nodeIter.hasNext())
+        {
+            template = nodeIter.next();
+            if(template.getIcFinal().equals("true"))
+                templateProperties.add(template.nodeProperties);
+        }
+
+        for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
+            Node node = item.next();
+            Iterable<String> keys = node.getPropertyKeys();
+            message = mandatoryFinalCheck(templateProperties, keys);
+        }
+        return message;
+    }
+
+    private String mandatoryFinalCheck(List<String> templateProperties, Iterable<String> keys) throws IntegrityConstraintViolationException {
+        Integer keysCnt = 0, tempCnt = 0;
+        while(keys.iterator().hasNext())
+        {
+            keysCnt++;
+            while(templateProperties.iterator().hasNext())
+            {
+                if(keys.iterator().next().equals(templateProperties.iterator().next()))
+                    tempCnt++;
+            }
+        }
+        if(keysCnt.equals(tempCnt))
+            return "ok";
+        else
+            throw new IntegrityConstraintViolationException("Data violates integrity constraint(s) with FINAL turned on TRUE");
     }
 
     private TemplateType icType(NodeTemplate template) {
