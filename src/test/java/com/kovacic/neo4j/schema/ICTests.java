@@ -137,13 +137,18 @@ public class ICTests {
 
         try (Transaction tx = database.beginTx()) {
 
+            // enable novalidate
             // should fail
             //database.execute("create (u:User {email:'karel@test.com'})");
             // should pass
             //database.execute("create (u:User {name: 'alois', email:'alois@test.com'})");
             // should fail - remove property
             //database.execute("MATCH (u:User { name: 'alois' }) SET u.name = NULL");
-            database.execute("create (u:User {name: 'karel', email:'karel@test.com'})");
+
+            // enable validate - should fail
+            database.execute("create (u:User {email:'karel@test.com'})");
+            database.execute("create (u:User {name: 'Sofia', email:'sofia@test.com'})");
+            //database.execute("MATCH (u:User { name: 'alois' }) SET u.name = NULL");
 
             tx.success();
         }

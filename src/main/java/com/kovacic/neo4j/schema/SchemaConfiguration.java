@@ -367,6 +367,18 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                 mandatoryCheck(ll, node, template);
             }
         } else if (template.enable.equals("validate")) {
+            //Iterator<Node> item1 = transactionData.createdNodes().iterator();
+            Iterator<PropertyEntry<Node>> item2 = transactionData.assignedNodeProperties().iterator();
+            // Commit assigned tx's
+            try (Transaction tx = this.databaseService.beginTx()) {
+                //while (item2.hasNext()) {
+                   // if (item2.next().key().equals(template.getNodeProperties()))
+                        tx.success();
+                //}
+            } catch (Exception ex) {
+                throw new IntegrityConstraintViolationException("The EXISTS constraint property violation at " + template.nodeProperties + "; mandatory property required");
+            }
+            //Iterator<PropertyEntry<Node>> item3 = transactionData.removedNodeProperties().iterator();
             try (Transaction tx = this.databaseService.beginTx()) {
                 //Node n = database.findNode(lab1, getPropertyName(template), node.getProperty(getPropertyName(template)));
                 ResourceIterator<Node> rin = this.databaseService.findNodes(new Label() {
@@ -376,7 +388,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                     }
                 });
                 while (rin.hasNext()) {
-                    //System.out.println(rin.next().getProperty(getPropertyName(template)));
+                    System.out.println(rin.next().getProperty(getPropertyName(template)));
                     rin.next().getProperty(getPropertyName(template));
                 }
                 tx.success();
