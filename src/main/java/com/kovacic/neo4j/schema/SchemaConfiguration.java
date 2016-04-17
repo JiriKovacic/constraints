@@ -345,15 +345,22 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     }
 
     private String mandatory(TransactionData transactionData, NodeTemplate template) throws IntegrityConstraintViolationException {
-        // Check created nodes
+        // Check created node properties
         for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
             Node node = item.next();
             Iterator<Label> ll = node.getLabels().iterator();
             mandatoryCheck(ll, node, template);
         }
 
-        // Check updated nodes
+        // Check updated node properties
         for (Iterator<PropertyEntry<Node>> item = transactionData.assignedNodeProperties().iterator(); item.hasNext(); ) {
+            Node node = item.next().entity();
+            Iterator<Label> ll = node.getLabels().iterator();
+            mandatoryCheck(ll, node, template);
+        }
+
+        // Check removed node properties
+        for (Iterator<PropertyEntry<Node>> item = transactionData.removedNodeProperties().iterator(); item.hasNext(); ) {
             Node node = item.next().entity();
             Iterator<Label> ll = node.getLabels().iterator();
             mandatoryCheck(ll, node, template);

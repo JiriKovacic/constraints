@@ -136,10 +136,13 @@ public class ICTests {
         });
 
         try (Transaction tx = database.beginTx()) {
-            
-            database.execute("create (u:User {email:'alois@test.com'})");
 
-            //database.execute("MATCH (u:User { name: 'Jirka' }) SET u.name = 'Taylor'");
+            // should fail
+            //database.execute("create (email:'alois@test.com'})");
+            // should pass
+            //database.execute("create (u:User {name: 'alois', email:'alois@test.com'})");
+            // should fail - remove property
+            database.execute("MATCH (u:User { name: 'alois' }) SET u.name = NULL");
 
             tx.success();
         }
