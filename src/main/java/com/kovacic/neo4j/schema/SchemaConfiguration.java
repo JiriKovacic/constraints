@@ -345,31 +345,52 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     }
 
     private String mandatory(TransactionData transactionData, NodeTemplate template) throws IntegrityConstraintViolationException {
-        // Check created node properties
-        for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
-            Node node = item.next();
-            Iterator<Label> ll = node.getLabels().iterator();
-            mandatoryCheck(ll, node, template);
+        if (template.enable.equals("novalidate")) {
+            // Check created node properties
+            for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
+                Node node = item.next();
+                Iterator<Label> ll = node.getLabels().iterator();
+                mandatoryCheck(ll, node, template);
+            }
+
+            // Check updated node properties
+            for (Iterator<PropertyEntry<Node>> item = transactionData.assignedNodeProperties().iterator(); item.hasNext(); ) {
+                Node node = item.next().entity();
+                Iterator<Label> ll = node.getLabels().iterator();
+                mandatoryCheck(ll, node, template);
+            }
+
+            // Check removed node properties
+            for (Iterator<PropertyEntry<Node>> item = transactionData.removedNodeProperties().iterator(); item.hasNext(); ) {
+                Node node = item.next().entity();
+                Iterator<Label> ll = node.getLabels().iterator();
+                mandatoryCheck(ll, node, template);
+            }
+        } else if (template.enable.equals("validate")) {
+            try (Transaction tx = this.databaseService.beginTx()) {
+                //Node n = database.findNode(lab1, getPropertyName(template), node.getProperty(getPropertyName(template)));
+                ResourceIterator<Node> rin = this.databaseService.findNodes(new Label() {
+                    @Override
+                    public String name() {
+                        return template.nodeLabel;
+                    }
+                });
+                while (rin.hasNext()) {
+                    //System.out.println(rin.next().getProperty(getPropertyName(template)));
+                    rin.next().getProperty(getPropertyName(template));
+                }
+                tx.success();
+            } catch (Exception e) {
+                throw new IntegrityConstraintViolationException("The EXISTS constraint property violation at " + template.nodeProperties + "; mandatory property required");
+                //System.out.println("Failed unique validation with DB -> (Check created nodes with database failed): " + e.getMessage());
+                //e.printStackTrace();
+            }
         }
 
-        // Check updated node properties
-        for (Iterator<PropertyEntry<Node>> item = transactionData.assignedNodeProperties().iterator(); item.hasNext(); ) {
-            Node node = item.next().entity();
-            Iterator<Label> ll = node.getLabels().iterator();
-            mandatoryCheck(ll, node, template);
-        }
-
-        // Check removed node properties
-        for (Iterator<PropertyEntry<Node>> item = transactionData.removedNodeProperties().iterator(); item.hasNext(); ) {
-            Node node = item.next().entity();
-            Iterator<Label> ll = node.getLabels().iterator();
-            mandatoryCheck(ll, node, template);
-        }
         return "ok";
     }
 
-    private String mandatoryCheck(Iterator<Label> label, Node node, NodeTemplate template) throws IntegrityConstraintViolationException
-    {
+    private String mandatoryCheck(Iterator<Label> label, Node node, NodeTemplate template) throws IntegrityConstraintViolationException {
         while (label.hasNext()) {
             if (label.next().name().equals(template.nodeLabel)) {
                 if (!node.hasProperty(template.nodeProperties))
