@@ -87,8 +87,7 @@ public class ICTests {
     }
 
     @Test
-    public void schemaDefinitonLoadJSON()
-    {
+    public void schemaDefinitonLoadJSON() {
         SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
         Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
         nodeConf.loadNodeConfiguration("./schemaConfigurations/nodeConfigs.json");
@@ -104,8 +103,7 @@ public class ICTests {
     }
 
     @Test
-    public void mandatoryPropertyTest()
-    {
+    public void mandatoryPropertyTest() {
         SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
         Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
         NodeTemplate constraintUser = new NodeTemplate("User", "name", "icMandatoryName", "exists", "validate", "immediate", "restrict", "restrict", true);
@@ -155,9 +153,7 @@ public class ICTests {
             database.execute("create (u:User {name: 'BBB', email:'bbb@test.com'})");
 
             tx.success();
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
         GraphUnit.printGraph(database);
@@ -165,8 +161,7 @@ public class ICTests {
     }
 
     @Test
-    public void dataTypePropertyTest()
-    {
+    public void dataTypePropertyTest() {
         SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
         Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
         //CREATE CONSTRAINT (name:'UABool') ON
@@ -210,9 +205,7 @@ public class ICTests {
             // should fail -> final = true
             //database.execute("create (u:User {name:'Vaclav22', email:'Vaclav22@test.com', active:'false'})");
             tx.success();
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
         GraphUnit.printGraph(database);
@@ -220,8 +213,7 @@ public class ICTests {
     }
 
     @Test
-    public void mathPropertyTest()
-    {
+    public void mathPropertyTest() {
         SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
         Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
         //CREATE CONSTRAINT (name:'UABool') ON
@@ -265,9 +257,7 @@ public class ICTests {
             // should fail -> final = true
             //database.execute("create (u:User {name:'Vaclav22', email:'Vaclav22@test.com', active:'false'})");
             tx.success();
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
         GraphUnit.printGraph(database);
@@ -275,8 +265,7 @@ public class ICTests {
     }
 
     @Test
-    public void regexPropertyTest()
-    {
+    public void regexPropertyTest() {
         SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
         Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
         //CREATE CONSTRAINT (name:'UABool') ON
@@ -322,9 +311,60 @@ public class ICTests {
             database.execute("create (u:User {name:'Emanuel', email:'emanuel@test.com'})");
 
             tx.success();
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
         }
-        catch (Exception ex)
-        {
+        GraphUnit.printGraph(database);
+        database.shutdown();
+    }
+
+    @Test
+    public void uniqueTest() {
+        SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
+        Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
+        NodeTemplate constraintUserUnique = new NodeTemplate("User", "name", "icUniqueUser", "unique", "novalidate", "immediate", "restrict", "restrict", false);
+
+        nodeConf.addNodeTemplate(constraintUserUnique);
+        schemaConfiguration.registerConfiguration(nodeConf, null);
+
+        GraphDatabaseService database = new TestGraphDatabaseFactory().newEmbeddedDatabase(new File(path));
+        registerShutdownHook(database);
+        database.registerTransactionEventHandler(new TransactionEventHandler<Void>() {
+            @Override
+            public Void beforeCommit(TransactionData transactionData) throws RuntimeException {
+                String temp = schemaConfiguration.enforce(transactionData, database);
+                System.out.println(temp);
+                if (!temp.toLowerCase().equals("ok"))
+                    throw new RuntimeException(temp);
+                return null;
+            }
+
+            @Override
+            public void afterCommit(TransactionData transactionData, Void aVoid) {
+
+            }
+
+            @Override
+            public void afterRollback(TransactionData transactionData, Void aVoid) {
+
+            }
+        });
+
+        try (Transaction tx = database.beginTx()) {
+
+            // enable novalidate
+            // should fail
+            database.execute("create (u:User {name:'Jana', email:'jana@test.com'})");
+            //database.execute("create (u:User {name:'Amalka', email:'amalka@test.com'})");
+            // should fail
+            //database.execute("match (u:User) set u.name = 'Jaja'");
+
+            // enable novalidate
+            //should pass
+            //database.execute("create (u:User {name:'Emanuel', email:'emanuel@test.com'})");
+
+            tx.success();
+        } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
         GraphUnit.printGraph(database);
