@@ -172,7 +172,7 @@ public class ICTests {
         //CREATE CONSTRAINT (name:'UABool') ON
         //(u:User) ASSERT EXISTS(u.active AS BOOLEAN);
 
-        NodeTemplate constraintUser = new NodeTemplate("User", "active AS Boolean", "UActiveBool", "exists", "novalidate", "immediate", "restrict", "restrict", false);
+        NodeTemplate constraintUser = new NodeTemplate("User", "active AS Boolean", "UActiveBool", "exists", "validate", "immediate", "restrict", "restrict", false);
         nodeConf.addNodeTemplate(constraintUser);
         schemaConfiguration.registerConfiguration(nodeConf, null);
 
@@ -205,8 +205,8 @@ public class ICTests {
             // should fail
             //database.execute("create (u:User {name:'Vaclav', email:'Vaclav@test.com', active:'truee'})");
             // should pass
-            database.execute("create (u:User {name:'Vaclav', email:'Vaclav@test.com', active:'true'})");
-
+            //database.execute("create (u:User {name:'Vaclav', email:'Vaclav@test.com', active:'true'})");
+            database.execute("MATCH (u:User { name: 'karel2' }) SET u.name = 'Karel'");
 
             tx.success();
         }

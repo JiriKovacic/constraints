@@ -422,6 +422,33 @@ public class SchemaConfiguration implements ISchemaConfiguration {
 
             } else if (template.enable.equals("validate")) {
                 // Check whole DB
+                Iterator<PropertyEntry<Node>> item2 = transactionData.assignedNodeProperties().iterator();
+                // Commit assigned tx's
+                try (Transaction tx = this.databaseService.beginTx()) {
+                    tx.success();
+                } catch (Exception ex) {
+                    throw new IntegrityConstraintViolationException("The EXISTS constraint property violation at (" + template.nodeProperties + "); placebo transaction failed");
+                }
+                try (Transaction tx = this.databaseService.beginTx()) {
+                    ResourceIterator<Node> rin = this.databaseService.findNodes(new Label() {
+                        @Override
+                        public String name() {
+                            return template.nodeLabel;
+                        }
+                    });
+                    while (rin.hasNext()) {
+                        //System.out.println(rin.next().getProperty(getPropertyName(template)));
+                        //rin.next().getProperty(getPropertyType(template));
+                        Node node = rin.next();
+                        System.out.println(node.getProperty("name"));
+                        message = dataTypeCheck(rin.next().getLabels().iterator(), node, template);
+                    }
+                    tx.success();
+                } catch (Exception e) {
+                    throw new IntegrityConstraintViolationException("The EXISTS constraint property violation at " + template.nodeProperties + "; " + e.getMessage());
+                    //System.out.println("Failed unique validation with DB -> (Check created nodes with database failed): " + e.getMessage());
+                    //e.printStackTrace();
+                }
             }
         }
 
@@ -524,7 +551,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     }
 
     private String getPropertyType(RelationshipTemplate template) {
-        return template.relationshipProperties.split(" ")[3];
+        return template.relationshipProperties.split(" ")[2];
     }
 
     private String getMathSymbol(NodeTemplate template) {
