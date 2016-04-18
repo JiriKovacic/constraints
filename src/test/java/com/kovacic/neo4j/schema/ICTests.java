@@ -108,7 +108,7 @@ public class ICTests {
     {
         SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
         Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
-        NodeTemplate constraintUser = new NodeTemplate("User", "name", "icMandatoryName", "exists", "validate", "immediate", "restrict", "restrict", false);
+        NodeTemplate constraintUser = new NodeTemplate("User", "name", "icMandatoryName", "exists", "validate", "immediate", "restrict", "restrict", true);
         nodeConf.addNodeTemplate(constraintUser);
         schemaConfiguration.registerConfiguration(nodeConf, null);
 
@@ -146,9 +146,13 @@ public class ICTests {
             //database.execute("MATCH (u:User { name: 'alois' }) SET u.name = NULL");
 
             // enable validate - should fail
-            database.execute("create (u:User {email:'karel@test.com'})");
-            database.execute("create (u:User {name: 'Sofia', email:'sofia@test.com'})");
+            //database.execute("create (u:User {email:'karel@test.com'})");
+            //database.execute("create (u:User {name: 'Sofia', email:'sofia@test.com'})");
             //database.execute("MATCH (u:User { name: 'alois' }) SET u.name = NULL");
+
+            // test final = true
+            database.execute("create (u:User {name:'AAA'})");
+            database.execute("create (u:User {name: 'BBB', email:'bbb@test.com'})");
 
             tx.success();
         }

@@ -345,8 +345,9 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     }
 
     private String mandatory(TransactionData transactionData, NodeTemplate template) throws IntegrityConstraintViolationException {
-        if(template.getIcFinal().equals("true"))
-            return checkFinal(transactionData);
+        String message = "";
+        if(template.getIcFinal())
+            message = checkFinal(transactionData);
         if(template.validation.toLowerCase().equals("immediate")) {
             if (template.enable.equals("novalidate")) {
                 // Check created node properties
@@ -402,7 +403,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                 }
             }
         }
-        return "ok";
+        return message;
     }
 
     private String mandatoryCheck(Iterator<Label> label, Node node, NodeTemplate template) throws IntegrityConstraintViolationException {
@@ -423,7 +424,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
         while(nodeIter.hasNext())
         {
             template = nodeIter.next();
-            if(template.getIcFinal().equals("true"))
+            if(template.getIcFinal())
                 templateProperties.add(template.nodeProperties);
         }
 
@@ -437,12 +438,13 @@ public class SchemaConfiguration implements ISchemaConfiguration {
 
     private String mandatoryFinalCheck(List<String> templateProperties, Iterable<String> keys) throws IntegrityConstraintViolationException {
         Integer keysCnt = 0, tempCnt = 0;
-        while(keys.iterator().hasNext())
+        for (Iterator<String> key = keys.iterator(); key.hasNext(); )
         {
             keysCnt++;
-            while(templateProperties.iterator().hasNext())
+            //while(templateProperties.iterator().hasNext())
+            for (Iterator<String> templ = templateProperties.iterator(); templ.hasNext(); )
             {
-                if(keys.iterator().next().equals(templateProperties.iterator().next()))
+                if(key.next().equals(templ.next()))
                     tempCnt++;
             }
         }
