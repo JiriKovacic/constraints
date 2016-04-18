@@ -441,7 +441,9 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                         //rin.next().getProperty(getPropertyType(template));
                         Node node = rin.next();
                         System.out.println(node.getProperty("name"));
-                        message = dataTypeCheck(rin.next().getLabels().iterator(), node, template);
+                        if (node.hasProperty("active"))
+                            System.out.println(node.getProperty("name") + " : " + node.getProperty("active"));
+                        message = dataTypeCheck(node.getLabels().iterator(), node, template);
                     }
                     tx.success();
                 } catch (Exception e) {
