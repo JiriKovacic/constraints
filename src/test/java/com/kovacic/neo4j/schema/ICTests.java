@@ -165,6 +165,60 @@ public class ICTests {
     }
 
     @Test
+    public void dataTypePropertyTest()
+    {
+        SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
+        Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
+        //CREATE CONSTRAINT (name:'UABool') ON
+        //(u:User) ASSERT EXISTS(u.active AS BOOLEAN);
+
+        NodeTemplate constraintUser = new NodeTemplate("User", "active AS Boolean", "UActiveBool", "exists", "novalidate", "immediate", "restrict", "restrict", false);
+        nodeConf.addNodeTemplate(constraintUser);
+        schemaConfiguration.registerConfiguration(nodeConf, null);
+
+        GraphDatabaseService database = new TestGraphDatabaseFactory().newEmbeddedDatabase(new File(path));
+        registerShutdownHook(database);
+        database.registerTransactionEventHandler(new TransactionEventHandler<Void>() {
+            @Override
+            public Void beforeCommit(TransactionData transactionData) throws RuntimeException {
+                String temp = schemaConfiguration.enforce(transactionData, database);
+                System.out.println(temp);
+                if (!temp.toLowerCase().equals("ok"))
+                    throw new RuntimeException(temp);
+                return null;
+            }
+
+            @Override
+            public void afterCommit(TransactionData transactionData, Void aVoid) {
+
+            }
+
+            @Override
+            public void afterRollback(TransactionData transactionData, Void aVoid) {
+
+            }
+        });
+
+        try (Transaction tx = database.beginTx()) {
+
+            // enable novalidate
+            // should fail
+            //database.execute("create (u:User {name:'Vaclav', email:'Vaclav@test.com', active:'truee'})");
+            // should pass
+            database.execute("create (u:User {name:'Vaclav', email:'Vaclav@test.com', active:'true'})");
+
+
+            tx.success();
+        }
+        catch (Exception ex)
+        {
+            System.out.println(ex.getMessage());
+        }
+        GraphUnit.printGraph(database);
+        database.shutdown();
+    }
+
+    @Test
     public void schemaTests() {
         SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
         Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
