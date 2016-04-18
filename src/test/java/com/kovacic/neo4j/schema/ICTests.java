@@ -275,6 +275,63 @@ public class ICTests {
     }
 
     @Test
+    public void regexPropertyTest()
+    {
+        SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
+        Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
+        //CREATE CONSTRAINT (name:'UABool') ON
+        //(u:User) ASSERT EXISTS(u.active AS BOOLEAN);
+
+        NodeTemplate constraintRegexProp = new NodeTemplate("User", "email AS \"[aA-zZ]+?@[a-z].+[a-z]\"", "RegexMail", "exists", "validate", "immediate", "restrict", "restrict", false);
+        nodeConf.addNodeTemplate(constraintRegexProp);
+        schemaConfiguration.registerConfiguration(nodeConf, null);
+
+        GraphDatabaseService database = new TestGraphDatabaseFactory().newEmbeddedDatabase(new File(path));
+        registerShutdownHook(database);
+        database.registerTransactionEventHandler(new TransactionEventHandler<Void>() {
+            @Override
+            public Void beforeCommit(TransactionData transactionData) throws RuntimeException {
+                String temp = schemaConfiguration.enforce(transactionData, database);
+                System.out.println(temp);
+                if (!temp.toLowerCase().equals("ok"))
+                    throw new RuntimeException(temp);
+                return null;
+            }
+
+            @Override
+            public void afterCommit(TransactionData transactionData, Void aVoid) {
+
+            }
+
+            @Override
+            public void afterRollback(TransactionData transactionData, Void aVoid) {
+
+            }
+        });
+
+        try (Transaction tx = database.beginTx()) {
+
+            // enable novalidate
+            // should pass
+            //database.execute("create (u:User {name:'Amalka', email:'amalka@test.com'})");
+            // should fail
+            //database.execute("create (u:User {name:'Amalka11', email:'amalka11@test.com'})");
+
+            // enable novalidate
+            //should pass
+            database.execute("create (u:User {name:'Emanuel', email:'emanuel@test.com'})");
+
+            tx.success();
+        }
+        catch (Exception ex)
+        {
+            System.out.println(ex.getMessage());
+        }
+        GraphUnit.printGraph(database);
+        database.shutdown();
+    }
+
+    @Test
     public void schemaTests() {
         SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
         Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
