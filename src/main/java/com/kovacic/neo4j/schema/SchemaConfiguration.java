@@ -218,17 +218,12 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     }
 
     private String checkUniqueWholeDb(NodeTemplate template) throws IntegrityConstraintViolationException {
-        String message = "";
+        String message = "ok";
         Object obj1, obj2;
+        ResourceIterator<Node> rin2;
         commitUniqueChanges(template);
         try (Transaction tx = this.databaseService.beginTx()) {
             ResourceIterator<Node> rin1 = this.databaseService.findNodes(new Label() {
-                @Override
-                public String name() {
-                    return template.nodeLabel;
-                }
-            });
-            ResourceIterator<Node> rin2 = this.databaseService.findNodes(new Label() {
                 @Override
                 public String name() {
                     return template.nodeLabel;
@@ -239,6 +234,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                 obj1 = node1.getProperty(getPropertyName(template));
                 Iterator<Label> ll1 = node1.getLabels().iterator();
                 System.out.println(node1.getProperty("name"));
+                rin2 = refreshResourceIterator(template.getNodeLabel());
                 while (ll1.hasNext()) {
                     if (ll1.next().name().equals(template.nodeLabel)) {
                         if (node1.hasProperty(getPropertyName(template))) {
@@ -267,8 +263,6 @@ public class SchemaConfiguration implements ISchemaConfiguration {
             //System.out.println("Failed unique validation with DB -> (Check created nodes with database failed): " + e.getMessage());
             //e.printStackTrace();
         }
-
-
         return message;
     }
 
@@ -279,6 +273,16 @@ public class SchemaConfiguration implements ISchemaConfiguration {
         } catch (Exception ex) {
             throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at (" + template.nodeProperties + "); placebo transaction failed");
         }
+    }
+
+    private ResourceIterator<Node> refreshResourceIterator(String nodeLableName)
+    {
+        return this.databaseService.findNodes(new Label() {
+            @Override
+            public String name() {
+                return nodeLableName;
+            }
+        });
     }
 
     private String mandatory(TransactionData transactionData, NodeTemplate template) throws IntegrityConstraintViolationException {
