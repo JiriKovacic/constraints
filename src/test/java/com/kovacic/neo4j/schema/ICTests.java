@@ -23,6 +23,7 @@ import static com.graphaware.common.util.DatabaseUtils.registerShutdownHook;
 public class ICTests {
 
     private static String path = "C:\\Users\\Jirka\\Documents\\Neo4j\\default.graphdb";
+    //private static String path = "C:\\Users\\Jirka\\Documents\\Neo4j\\cineasts_12k_movies_50k_actors.db";
 
     @Test
     public void clearDB() {
@@ -40,7 +41,7 @@ public class ICTests {
     }
 
     @Test
-    public void loadInitialData() {
+    public void loadInitialDataUser() {
         GraphDatabaseService database = new TestGraphDatabaseFactory().newEmbeddedDatabase(new File(path));
         registerShutdownHook(database);
 
@@ -49,6 +50,25 @@ public class ICTests {
             database.execute("create (u:User {name:'Honza', email:'honza@test.com'})");
             database.execute("create (u:User {name:'Jirka', email:'jirka@test.com'})");
             database.execute("create (u:User {name:'Pavel', email:'pavel@test.com'})");
+            tx.success();
+        } catch (Exception e) {
+            System.out.println("Failed for some reason: " + e.getMessage());
+            e.printStackTrace();
+        }
+        GraphUnit.printGraph(database);
+        database.shutdown();
+    }
+
+    @Test
+    public void loadInitialDataPerson() {
+        GraphDatabaseService database = new TestGraphDatabaseFactory().newEmbeddedDatabase(new File(path));
+        registerShutdownHook(database);
+
+        try (Transaction tx = database.beginTx()) {
+            database.execute("create (p:Person {firstName:'Pepa', lastName:'Midas'})");
+            database.execute("create (p:Person {firstName:'Honza', lastName:'Koral'})");
+            database.execute("create (p:Person {firstName:'Jitka', lastName:'Hodna'})");
+            database.execute("create (p:Person {firstName:'Pavel', lastName:'Novotny'})");
             tx.success();
         } catch (Exception e) {
             System.out.println("Failed for some reason: " + e.getMessage());
@@ -372,6 +392,64 @@ public class ICTests {
     }
 
     @Test
+    public void uniqueMultipleTest() {
+        SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
+        Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
+        NodeTemplate constraintPersonMultUnique = new NodeTemplate("Person", "firstName, lastname", "icUniqueMultiplePerson", "unique", "novalidate", "immediate", "restrict", "restrict", false);
+        //NodeTemplate constraintPersonMultUnique = new NodeTemplate("Person", "firstName && lastname", "icUniqueMultiplePerson", "unique", "novalidate", "immediate", "restrict", "restrict", false);
+
+        nodeConf.addNodeTemplate(constraintPersonMultUnique);
+        schemaConfiguration.registerConfiguration(nodeConf, null);
+
+        GraphDatabaseService database = new TestGraphDatabaseFactory().newEmbeddedDatabase(new File(path));
+        registerShutdownHook(database);
+        database.registerTransactionEventHandler(new TransactionEventHandler<Void>() {
+            @Override
+            public Void beforeCommit(TransactionData transactionData) throws RuntimeException {
+                String temp = schemaConfiguration.enforce(transactionData, database);
+                System.out.println(temp);
+                if (!temp.toLowerCase().equals("ok"))
+                    throw new RuntimeException(temp);
+                return null;
+            }
+
+            @Override
+            public void afterCommit(TransactionData transactionData, Void aVoid) {
+
+            }
+
+            @Override
+            public void afterRollback(TransactionData transactionData, Void aVoid) {
+
+            }
+        });
+
+        try (Transaction tx = database.beginTx()) {
+
+            database.execute("create (:User)");
+
+            // enable novalidate
+            // should pass
+            //database.execute("create (p:Person {firstName:'Jana', lastName:'Hodna'})");
+            //database.execute("create (p:Person {firstName:'Karla', lastName:'Hodna'})");
+            //database.execute("create (p:Person {firstName:'Jitka', lastName:'Zla'})");
+
+            // should fail
+            //database.execute("create (p:Person {firstName:'Jitka', lastName:'Hodna'})");
+
+            // enable novalidate
+            //should pass
+            //database.execute("create (u:User {name:'Emanuel', email:'emanuel@test.com'})");
+
+            tx.success();
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+        GraphUnit.printGraph(database);
+        database.shutdown();
+    }
+
+    @Test
     public void schemaTests() {
         SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
         Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
@@ -493,6 +571,24 @@ public class ICTests {
             tx.success();
         }
         GraphUnit.printGraph(database);
+        database.shutdown();
+    }
+
+    @Test
+    public void cineastsDBTest() {
+        GraphDatabaseService database = new TestGraphDatabaseFactory().newEmbeddedDatabase(new File(path));
+        registerShutdownHook(database);
+        Result res;
+        try (Transaction tx = database.beginTx()) {
+            ResourceIterator<Node> rin = database.findNodes(() -> "Movie");
+            while (rin.hasNext()) {
+                Node node = rin.next();
+                System.out.println(node.getProperty("title"));
+            }
+            tx.success();
+        } catch (Exception e) {
+            System.out.println("Cineasts failed");
+        }
         database.shutdown();
     }
 }
