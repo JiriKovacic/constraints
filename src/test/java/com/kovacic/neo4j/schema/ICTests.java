@@ -395,7 +395,7 @@ public class ICTests {
     public void uniqueMultipleTest() {
         SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
         Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
-        NodeTemplate constraintPersonMultUnique = new NodeTemplate("Person", "firstName, lastname", "icUniqueMultiplePerson", "unique", "novalidate", "immediate", "restrict", "restrict", false);
+        NodeTemplate constraintPersonMultUnique = new NodeTemplate("Person", "firstName, lastName", "icUniqueMultiplePerson", "unique", "novalidate", "immediate", "restrict", "restrict", false);
         //NodeTemplate constraintPersonMultUnique = new NodeTemplate("Person", "firstName && lastname", "icUniqueMultiplePerson", "unique", "novalidate", "immediate", "restrict", "restrict", false);
 
         nodeConf.addNodeTemplate(constraintPersonMultUnique);
@@ -426,11 +426,11 @@ public class ICTests {
 
         try (Transaction tx = database.beginTx()) {
 
-            database.execute("create (:User)");
+            //database.execute("create (:User)");
 
             // enable novalidate
             // should pass
-            //database.execute("create (p:Person {firstName:'Jana', lastName:'Hodna'})");
+            //database.execute("create (p:Person {firstName:'Verca', lastName:'Hodna'})");
             //database.execute("create (p:Person {firstName:'Karla', lastName:'Hodna'})");
             //database.execute("create (p:Person {firstName:'Jitka', lastName:'Zla'})");
 

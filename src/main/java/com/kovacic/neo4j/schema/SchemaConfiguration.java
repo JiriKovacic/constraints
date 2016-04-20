@@ -137,6 +137,8 @@ public class SchemaConfiguration implements ISchemaConfiguration {
 
     private String unique(TransactionData transactionData, NodeTemplate template) throws IntegrityConstraintViolationException {
         Boolean isMultipleProperties = isMultipleProperties(template);
+        Object obj1value1, obj1value2;
+        Object obj2value1, obj2value2;
         Object obj1 = null;
         Object obj2 = null;
         String message = "ok";
@@ -151,30 +153,38 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                     Iterator<Label> ll1 = node.getLabels().iterator();
                     while (ll1.hasNext()) {
                         if (ll1.next().name().equals(template.nodeLabel)) {
-                            if (node.hasProperty(getPropertyName(template))) {
+                            if (node.hasProperty(getPropertyName(template)[0])) {
                                 for (Iterator<Node> node2 = transactionData.createdNodes().iterator(); node2.hasNext(); ) {
                                     Node anotherNode = node2.next();
                                     Iterator<Label> ll2 = anotherNode.getLabels().iterator();
                                     while (ll2.hasNext()) {
                                         if (ll2.next().name().equals(template.nodeLabel)) {
-                                            if (anotherNode.hasProperty(getPropertyName(template))) {
+                                            if (anotherNode.hasProperty(getPropertyName(template)[0]) || anotherNode.hasProperty(getPropertyName(template)[1])) {
                                                 if (node.getId() != anotherNode.getId()) {
-                                                    obj1 = node.getProperty(getPropertyName(template));
-                                                    obj2 = anotherNode.getProperty(getPropertyName(template));
-                                                    if (obj1.equals(obj2))
-                                                        throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at " + template.nodeProperties + ", duplicity value: " + obj1.toString() + " ");
+                                                    obj1value1 = node.getProperty(getPropertyName(template)[0]);
+                                                    obj2value1 = anotherNode.getProperty(getPropertyName(template)[0]);
+                                                    if (!isMultipleProperties) {
+
+                                                        if (obj1value1.equals(obj2value1))
+                                                            throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at (" + template.nodeProperties + "), duplicity value: " + obj1value1.toString() + " ");
+                                                    } else {
+                                                        obj1value2 = node.getProperty(getPropertyName(template)[1]);
+                                                        obj2value2 = anotherNode.getProperty(getPropertyName(template)[1]);
+                                                        if (obj1value1.equals(obj2value1) && obj1value2.equals(obj2value2))
+                                                            throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at (" + template.nodeProperties + "), duplicity values: " + obj1value1.toString() + " " + obj1value2.toString());
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
                             } //else
-                                //throw new IntegrityConstraintViolationException("The UNIQUE constraint must contain a property " + template.nodeProperties);
+                            //throw new IntegrityConstraintViolationException("The UNIQUE constraint must contain a property " + template.nodeProperties);
                         }
                     }
                 }
                 // Check updated nodeValues in transactionData
-                Node tempNode1 = null, tempNode2 = null;
+                /*Node tempNode1 = null, tempNode2 = null;
                 String key1 = "", key2 = "";
                 Object value1 = null, value2 = null;
                 for (Iterator<PropertyEntry<Node>> node1 = transactionData.assignedNodeProperties().iterator(); node1.hasNext(); ) {
@@ -185,7 +195,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                     Iterator<Label> ll1 = tempNode1.getLabels().iterator();
                     while (ll1.hasNext()) {
                         if (ll1.next().name().equals(template.nodeLabel)) {
-                            if (tempNode1.hasProperty(getPropertyName(template))) {
+                            if (tempNode1.hasProperty(getPropertyName(template)[0])) {
                                 for (Iterator<PropertyEntry<Node>> node2 = transactionData.assignedNodeProperties().iterator(); node2.hasNext(); ) {
                                     obj2 = node2.next();
                                     key2 = ((PropertyEntry<Node>) obj2).key();
@@ -194,7 +204,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                                     Iterator<Label> ll2 = tempNode2.getLabels().iterator();
                                     while (ll2.hasNext()) {
                                         if (ll2.next().name().equals(template.nodeLabel)) {
-                                            if (tempNode2.hasProperty(getPropertyName(template))) {
+                                            if (tempNode2.hasProperty(getPropertyName(template)[0])) {
                                                 if (tempNode1.getId() != tempNode2.getId()) {
                                                     if (value1.equals(value2))
                                                         throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at " + template.nodeProperties + ", duplicity value: " + obj1.toString() + " ");
@@ -204,10 +214,10 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                                     }
                                 }
                             } //else
-                               // throw new IntegrityConstraintViolationException("The UNIQUE constraint must contain a property " + template.nodeProperties);
+                            // throw new IntegrityConstraintViolationException("The UNIQUE constraint must contain a property " + template.nodeProperties);
                         }
                     }
-                }
+                }*/
                 // Check with whole DB
                 // Not implemented yet
                 message = checkUniqueWholeDb(template);
@@ -220,28 +230,20 @@ public class SchemaConfiguration implements ISchemaConfiguration {
         return message;
     }
 
-    private Boolean isMultipleProperties(NodeTemplate template)
-    {
-        String[] temp1 = template.getNodeProperties().split(",");
-        String[] temp2 = template.getNodeProperties().split("&&");
-        System.out.println(temp1[0] + " " + temp1[1]);
-        // Regular property
-        /*if (temp1.length == temp2.length)
-            return TemplateType.Mandatory;
-        // Math
-        if (temp1[1].contentEquals("<") || temp1[1].contentEquals(">") || temp1[1].contentEquals("<=") || temp1[1].contentEquals(">=") || temp1[1].contentEquals("=="))
-            return TemplateType.Math;
-        // Data type and regex
-        if (temp1[1].toLowerCase().contentEquals("as")) {
-            if (temp1[2].toLowerCase().contentEquals("boolean") || temp1[2].toLowerCase().contentEquals("long") || temp1[2].toLowerCase().contentEquals("double") || temp1[2].toLowerCase().contentEquals("string") || temp1[2].toLowerCase().contentEquals("char") || temp1[2].toLowerCase().contains("list"))
-                return TemplateType.Datatype;
-            else if (temp1[2].contains("\""))
-                return TemplateType.Regex;
-        }*/
-        return null;
+    private Boolean isMultipleProperties(NodeTemplate template) {
+        String[] temp1 = template.getNodeProperties().split(", ");
+        String[] temp2 = template.getNodeProperties().split(" && ");
+        //System.out.println(temp1[0] + " " + temp1[1]);
+        if (temp1.length == temp2.length)
+            return false;
+        else
+            return true;
     }
 
     private String checkUniqueWholeDb(NodeTemplate template) throws IntegrityConstraintViolationException {
+        Boolean isMultipleProperties = isMultipleProperties(template);
+        Object obj1value1, obj1value2;
+        Object obj2value1, obj2value2;
         String message = "ok";
         Object obj1, obj2;
         ResourceIterator<Node> rin2;
@@ -261,18 +263,26 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                 rin2 = refreshResourceIterator(template.getNodeLabel());
                 while (ll1.hasNext()) {
                     if (ll1.next().name().equals(template.nodeLabel)) {
-                        if (node1.hasProperty(getPropertyName(template))) {
+                        if (node1.hasProperty(getPropertyName(template)[0])) {
                             while (rin2.hasNext()) {
                                 Node node2 = rin2.next();
                                 Iterator<Label> ll2 = node2.getLabels().iterator();
                                 while (ll2.hasNext()) {
                                     if (ll2.next().name().equals(template.nodeLabel)) {
-                                        if (node2.hasProperty(getPropertyName(template))) {
+                                        if (node2.hasProperty(getPropertyName(template)[0]) || node2.hasProperty(getPropertyName(template)[1])) {
                                             if (node1.getId() != node2.getId()) {
-                                                obj1 = node1.getProperty(getPropertyName(template));
-                                                obj2 = node2.getProperty(getPropertyName(template));
-                                                if (obj1.equals(obj2))
-                                                    throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at " + template.nodeProperties + ", duplicity value: " + obj1.toString() + " ");
+                                                obj1value1 = node1.getProperty(getPropertyName(template)[0]);
+                                                obj2value1 = node2.getProperty(getPropertyName(template)[0]);
+                                                if (!isMultipleProperties) {
+                                                    if (obj1value1.equals(obj2value1))
+                                                        throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at " + template.nodeProperties + ", duplicity value: " + obj1value1.toString() + " ");
+                                                } else {
+                                                    obj1value2 = node1.getProperty(getPropertyName(template)[1]);
+                                                    obj2value2 = node2.getProperty(getPropertyName(template)[1]);
+                                                    if(obj1value1.equals(obj2value1) && obj1value2.equals(obj2value2))
+                                                        throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at (" + template.nodeProperties + "), duplicity values: " + obj1value1.toString() + " " + obj1value2.toString());
+
+                                                }
                                             }
                                         }
                                     }
@@ -300,8 +310,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
         }
     }
 
-    private ResourceIterator<Node> refreshResourceIterator(String nodeLableName)
-    {
+    private ResourceIterator<Node> refreshResourceIterator(String nodeLableName) {
         return this.databaseService.findNodes(new Label() {
             @Override
             public String name() {
@@ -359,7 +368,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                     });
                     while (rin.hasNext()) {
                         //System.out.println(rin.next().getProperty(getPropertyName(template)));
-                        rin.next().getProperty(getPropertyName(template));
+                        rin.next().getProperty(getPropertyName(template)[0]);
                     }
                     tx.success();
                 } catch (Exception e) {
@@ -481,8 +490,8 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     private String dataTypeCheck(Iterator<Label> ll, Node node, NodeTemplate template) throws IntegrityConstraintViolationException {
         while (ll.hasNext()) {
             if (ll.next().name().equals(template.nodeLabel)) {
-                if (node.hasProperty(getPropertyName(template))) {
-                    Object o = node.getProperty(getPropertyName(template));
+                if (node.hasProperty(getPropertyName(template)[0])) {
+                    Object o = node.getProperty(getPropertyName(template)[0]);
                     // Boolean
                     if (getPropertyType(template).toLowerCase().equals("boolean")) {
                         if (!Boolean.valueOf(o.toString()))
@@ -598,8 +607,8 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     private String mathCheck(Iterator<Label> ll, Node node, NodeTemplate template) throws IntegrityConstraintViolationException {
         while (ll.hasNext()) {
             if (ll.next().name().equals(template.nodeLabel)) {
-                if (node.hasProperty(getPropertyName(template))) {
-                    Object o = node.getProperty(getPropertyName(template));
+                if (node.hasProperty(getPropertyName(template)[0])) {
+                    Object o = node.getProperty(getPropertyName(template)[0]);
                     if (NumberUtils.isNumber(o.toString())) {
                         switch (getMathSymbol(template)) {
                             case "<":
@@ -694,8 +703,8 @@ public class SchemaConfiguration implements ISchemaConfiguration {
     private String regexCheck(Iterator<Label> ll, Node node, NodeTemplate template) throws IntegrityConstraintViolationException {
         while (ll.hasNext()) {
             if (ll.next().name().equals(template.nodeLabel)) {
-                if (node.hasProperty(getPropertyName(template))) {
-                    Object o = node.getProperty(getPropertyName(template));
+                if (node.hasProperty(getPropertyName(template)[0])) {
+                    Object o = node.getProperty(getPropertyName(template)[0]);
                     if (!(o.toString().matches(getPropertyValue(template).substring(1, getPropertyValue(template).length() - 1))))
                         throw new IntegrityConstraintViolationException("The property value " + o.toString() + " violates (" + template.nodeProperties + ") constraint");
                 }
@@ -731,8 +740,17 @@ public class SchemaConfiguration implements ISchemaConfiguration {
         return null;
     }
 
-    private String getPropertyName(NodeTemplate template) {
-        return template.nodeProperties.split(" ")[0];
+    private String[] getPropertyName(NodeTemplate template) {
+        String[] temp1 = template.getNodeProperties().split(", ");
+        String[] temp2 = template.getNodeProperties().split(" && ");
+        if (temp1.length == temp2.length)
+            return template.nodeProperties.split(" ");
+        else if (temp1.length != 1)
+            return template.nodeProperties.split(", ");
+        else if (temp2.length != 1)
+            return template.nodeProperties.split(" && ");
+        else
+            return template.nodeProperties.split(" ");
     }
 
     private String getPropertyName(RelationshipTemplate template) {
