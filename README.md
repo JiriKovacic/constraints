@@ -16,8 +16,9 @@ First paragraph is a schema definition. The second paragraph is a use of **Schem
 
     SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
     Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
-    NodeTemplate constraintUser = new NodeTemplate("User", "email", "icUniqueUser", "unique", "novalidate", "immediate", "restrict", "restrict", false);
-    schemaConfiguration.registerConfiguration(nodeConf, null);
+    NodeTemplate constraintPersonMultUnique = new NodeTemplate("Person", "firstName, lastName", "icUniqueMultiplePerson", "unique", "novalidate", "immediate", "restrict", "restrict", false);
+
+    schemaConfiguration.registerConfiguration(constraintPersonMultUnique, null);
 
     ...
     GraphDatabaseService database;
@@ -35,3 +36,19 @@ First paragraph is a schema definition. The second paragraph is a use of **Schem
     @Override
     public void afterRollback(...) {...}
     });
+    
+    ...
+    
+    try (Transaction tx = database.beginTx()) {
+            
+        // Should pass
+        database.execute("create (p:Person {firstName:'Jitka', lastName:'Hodna'})");
+        database.execute("create (p:Person {firstName:'Karla', lastName:'Hodna'})");
+            
+        // Should fail
+        database.execute("create (p:Person {firstName:'Jitka', lastName:'Hodna'})");
+
+        tx.success();
+    } catch (Exception ex) {
+        System.out.println(ex.getMessage());
+    }
