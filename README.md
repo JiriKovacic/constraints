@@ -2,9 +2,15 @@
 ## Intro
 The integrity constraints for Neo4j is a prototype implementation of defining a database schema. There are implemented three types of constraints. 
 
-* Node property uniqueness,
-* Mandatory properties for nodes,
-* Property value limitations for nodes.
+* **Node property uniqueness**,
+    * Single property value *(like email, name or whatever)*, or
+    * two independent property values *(like firstName and lastName and so on)*.
+* **Mandatory properties** for nodes,
+    * A property that must be assigned *(i.e. email must have filled certain value)* 
+* **Property value limitations** for nodes
+    * Defined math rules *(user credits > 0)*,
+    * basic datatypes *(like integer, string, bool etc.)* and
+    * *regular expression* matching.
 
 The implementation consists of Schema configuration interface **SchemaConfigurationAPI** for defining, registering and starting the database enforcement. The implementation structure can be found at diagrams folder where a class diagram is kept.
 
