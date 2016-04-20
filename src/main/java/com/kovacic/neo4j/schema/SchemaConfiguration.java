@@ -286,8 +286,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
 
                                                 }
                                             }
-                                        } else {
-                                        }// Do nothing
+                                        } 
                                     }
                                 }
                             }
