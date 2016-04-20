@@ -159,7 +159,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                                     Iterator<Label> ll2 = anotherNode.getLabels().iterator();
                                     while (ll2.hasNext()) {
                                         if (ll2.next().name().equals(template.nodeLabel)) {
-                                            if (anotherNode.hasProperty(getPropertyName(template)[0]) || anotherNode.hasProperty(getPropertyName(template)[1])) {
+                                            if (isMultipleProperties == false ? anotherNode.hasProperty(getPropertyName(template)[0]) : anotherNode.hasProperty(getPropertyName(template)[1])) {
                                                 if (node.getId() != anotherNode.getId()) {
                                                     obj1value1 = node.getProperty(getPropertyName(template)[0]);
                                                     obj2value1 = anotherNode.getProperty(getPropertyName(template)[0]);
@@ -221,9 +221,9 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                 // Check with whole DB
                 // Not implemented yet
                 message = checkUniqueWholeDb(template);
+            } else if (template.enable.equals("validate")) {
+                checkUniqueWholeDb(template);
             }
-        } else if (template.enable.equals("validate")) {
-            checkUniqueWholeDb(template);
         }
 
 // Check updated nodeValues with database
@@ -242,7 +242,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
 
     private String checkUniqueWholeDb(NodeTemplate template) throws IntegrityConstraintViolationException {
         Boolean isMultipleProperties = isMultipleProperties(template);
-        Object obj1value1, obj1value2;
+        Object obj1value1 = null, obj1value2;
         Object obj2value1, obj2value2;
         String message = "ok";
         Object obj1, obj2;
@@ -269,22 +269,25 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                                 Iterator<Label> ll2 = node2.getLabels().iterator();
                                 while (ll2.hasNext()) {
                                     if (ll2.next().name().equals(template.nodeLabel)) {
-                                        if (node2.hasProperty(getPropertyName(template)[0]) || node2.hasProperty(getPropertyName(template)[1])) {
+                                        //System.out.println(node2.hasProperty("active"));
+                                        if (isMultipleProperties == false ? node2.hasProperty(getPropertyName(template)[0]) : node2.hasProperty(getPropertyName(template)[1])) {
                                             if (node1.getId() != node2.getId()) {
                                                 obj1value1 = node1.getProperty(getPropertyName(template)[0]);
                                                 obj2value1 = node2.getProperty(getPropertyName(template)[0]);
+                                                System.out.println(obj1value1 + " " + obj2value1);
                                                 if (!isMultipleProperties) {
                                                     if (obj1value1.equals(obj2value1))
                                                         throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at " + template.nodeProperties + ", duplicity value: " + obj1value1.toString() + " ");
                                                 } else {
                                                     obj1value2 = node1.getProperty(getPropertyName(template)[1]);
                                                     obj2value2 = node2.getProperty(getPropertyName(template)[1]);
-                                                    if(obj1value1.equals(obj2value1) && obj1value2.equals(obj2value2))
+                                                    if (obj1value1.equals(obj2value1) && obj1value2.equals(obj2value2))
                                                         throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at (" + template.nodeProperties + "), duplicity values: " + obj1value1.toString() + " " + obj1value2.toString());
 
                                                 }
                                             }
-                                        }
+                                        } else {
+                                        }// Do nothing
                                     }
                                 }
                             }
@@ -294,7 +297,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
             }
             tx.success();
         } catch (Exception e) {
-            throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at " + template.nodeProperties + "; " + e.getMessage());
+            throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at " + template.nodeProperties + "; " + obj1value1.toString());
             //System.out.println("Failed unique validation with DB -> (Check created nodes with database failed): " + e.getMessage());
             //e.printStackTrace();
         }

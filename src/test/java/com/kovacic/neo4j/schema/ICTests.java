@@ -22,8 +22,8 @@ import static com.graphaware.common.util.DatabaseUtils.registerShutdownHook;
  */
 public class ICTests {
 
-    private static String path = "C:\\Users\\Jirka\\Documents\\Neo4j\\default.graphdb";
-    //private static String path = "C:\\Users\\Jirka\\Documents\\Neo4j\\cineasts_12k_movies_50k_actors.db";
+    //private static String path = "C:\\Users\\Jirka\\Documents\\Neo4j\\default.graphdb";
+    private static String path = "C:\\Users\\Jirka\\Documents\\Neo4j\\cineasts_12k_movies_50k_actors.db";
 
     @Test
     public void clearDB() {
@@ -406,8 +406,10 @@ public class ICTests {
         database.registerTransactionEventHandler(new TransactionEventHandler<Void>() {
             @Override
             public Void beforeCommit(TransactionData transactionData) throws RuntimeException {
+                long startTime = System.nanoTime();
                 String temp = schemaConfiguration.enforce(transactionData, database);
-                System.out.println(temp);
+                long estimatedTime = System.nanoTime() - startTime;
+                System.out.println("Result " + temp + " estimatedTime " + estimatedTime + " [ns]");
                 if (!temp.toLowerCase().equals("ok"))
                     throw new RuntimeException(temp);
                 return null;
@@ -435,7 +437,7 @@ public class ICTests {
             //database.execute("create (p:Person {firstName:'Jitka', lastName:'Zla'})");
 
             // should fail
-            //database.execute("create (p:Person {firstName:'Jitka', lastName:'Hodna'})");
+            database.execute("create (p:Person {firstName:'Jitka', lastName:'Hodna'})");
 
             // enable novalidate
             //should pass
@@ -580,15 +582,61 @@ public class ICTests {
         registerShutdownHook(database);
         Result res;
         try (Transaction tx = database.beginTx()) {
-            ResourceIterator<Node> rin = database.findNodes(() -> "Movie");
+            ResourceIterator<Node> rin = database.findNodes(() -> "User");
             while (rin.hasNext()) {
                 Node node = rin.next();
-                System.out.println(node.getProperty("title"));
+                //if(node.hasProperty("name"))
+                    System.out.println(node.getProperty("name"));
             }
             tx.success();
         } catch (Exception e) {
             System.out.println("Cineasts failed");
         }
+        database.shutdown();
+    }
+
+    @Test
+    public void cineastsUniqueUserTest() {
+        SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
+        Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
+        NodeTemplate constraintPersonMultUnique = new NodeTemplate("User", "name", "uniqueUserT", "unique", "validate", "immediate", "restrict", "restrict", false);
+        //NodeTemplate constraintPersonMultUnique = new NodeTemplate("Person", "firstName && lastname", "icUniqueMultiplePerson", "unique", "novalidate", "immediate", "restrict", "restrict", false);
+
+        nodeConf.addNodeTemplate(constraintPersonMultUnique);
+        schemaConfiguration.registerConfiguration(nodeConf, null);
+
+        GraphDatabaseService database = new TestGraphDatabaseFactory().newEmbeddedDatabase(new File(path));
+        registerShutdownHook(database);
+        database.registerTransactionEventHandler(new TransactionEventHandler<Void>() {
+            @Override
+            public Void beforeCommit(TransactionData transactionData) throws RuntimeException {
+                long startTime = System.nanoTime();
+                String temp = schemaConfiguration.enforce(transactionData, database);
+                long estimatedTime = System.nanoTime() - startTime;
+                System.out.println("Result " + temp + " estimatedTime " + estimatedTime + " [ns]");
+                if (!temp.toLowerCase().equals("ok"))
+                    throw new RuntimeException(temp);
+                return null;
+            }
+
+            @Override
+            public void afterCommit(TransactionData transactionData, Void aVoid) {
+
+            }
+
+            @Override
+            public void afterRollback(TransactionData transactionData, Void aVoid) {
+
+            }
+        });
+
+        try (Transaction tx = database.beginTx()) {
+            database.execute("create (:User {active:'false'})");
+            tx.success();
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+        //GraphUnit.printGraph(database);
         database.shutdown();
     }
 }
