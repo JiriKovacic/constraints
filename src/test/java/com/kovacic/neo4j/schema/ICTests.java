@@ -582,11 +582,11 @@ public class ICTests {
         registerShutdownHook(database);
         Result res;
         try (Transaction tx = database.beginTx()) {
-            ResourceIterator<Node> rin = database.findNodes(() -> "User");
+            ResourceIterator<Node> rin = database.findNodes(() -> "Director");
             while (rin.hasNext()) {
                 Node node = rin.next();
                 //if(node.hasProperty("name"))
-                    System.out.println(node.getProperty("name"));
+                System.out.println(node.getProperty("name"));
             }
             tx.success();
         } catch (Exception e) {
@@ -596,10 +596,25 @@ public class ICTests {
     }
 
     @Test
+    public void deleteSomeNode() {
+        GraphDatabaseService database = new TestGraphDatabaseFactory().newEmbeddedDatabase(new File(path));
+        registerShutdownHook(database);
+        try (Transaction tx = database.beginTx()) {
+            database.execute("match (n:Director {name:'Raj Nidimoru'}) WITH n SKIP 1 DETACH DELETE n");
+            //database.execute("match (n:User {name:'Heidi Gower'}) WITH n SKIP 1 SET n.name = 'Heidi Gower II'");
+            //database.execute("create (u:User {name:'test'})");
+            tx.success();
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+        database.shutdown();
+    }
+
+    @Test
     public void cineastsUniqueUserTest() {
         SchemaConfiguration schemaConfiguration = SchemaConfiguration.getInstance();
         Configuration nodeConf = schemaConfiguration.configurationFactory.getConfiguration(ConfigurationType.NodeConfiguration);
-        NodeTemplate constraintPersonMultUnique = new NodeTemplate("User", "name", "uniqueUserT", "unique", "validate", "immediate", "restrict", "restrict", false);
+        NodeTemplate constraintPersonMultUnique = new NodeTemplate("Actor", "name AS string", "uniqueUserT", "exists", "validate", "immediate", "restrict", "restrict", false);
         //NodeTemplate constraintPersonMultUnique = new NodeTemplate("Person", "firstName && lastname", "icUniqueMultiplePerson", "unique", "novalidate", "immediate", "restrict", "restrict", false);
 
         nodeConf.addNodeTemplate(constraintPersonMultUnique);
@@ -631,8 +646,28 @@ public class ICTests {
         });
 
         try (Transaction tx = database.beginTx()) {
-            database.execute("create (:User {active:'false'})");
+            database.execute("create (:Pokus {active:'false'})");
             tx.success();
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+        //GraphUnit.printGraph(database);
+        database.shutdown();
+    }
+
+    @Test
+    public void neo4jUniqueTest()
+    {
+        GraphDatabaseService database = new TestGraphDatabaseFactory().newEmbeddedDatabase(new File(path));
+        registerShutdownHook(database);
+        try (Transaction tx = database.beginTx()) {
+            long startTime = System.nanoTime();
+            //database.execute("DROP INDEX ON :Director(name)");
+            //database.execute("CREATE CONSTRAINT ON (u:Director) ASSERT u.name IS UNIQUE");
+            database.execute("create (d:Director {name:'Cheri Pugh'})");
+            tx.success();
+            long estimatedTime = System.nanoTime() - startTime;
+            System.out.println("estimatedTime " + estimatedTime + " [ns]");
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }

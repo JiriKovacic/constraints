@@ -274,7 +274,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                                             if (node1.getId() != node2.getId()) {
                                                 obj1value1 = node1.getProperty(getPropertyName(template)[0]);
                                                 obj2value1 = node2.getProperty(getPropertyName(template)[0]);
-                                                System.out.println(obj1value1 + " " + obj2value1);
+                                                //System.out.println(obj1value1 + " " + obj2value1);
                                                 if (!isMultipleProperties) {
                                                     if (obj1value1.equals(obj2value1))
                                                         throw new IntegrityConstraintViolationException("The UNIQUE constraint property violation at " + template.nodeProperties + ", duplicity value: " + obj1value1.toString() + " ");
@@ -480,7 +480,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
                         //System.out.println(rin.next().getProperty(getPropertyName(template)));
                         //rin.next().getProperty(getPropertyType(template));
                         Node node = rin.next();
-                        System.out.println(node.getProperty("name"));
+                        //System.out.println(node.getProperty("name"));
                         if (node.hasProperty("active"))
                             System.out.println(node.getProperty("name") + " : " + node.getProperty("active"));
                         message = dataTypeCheck(node.getLabels().iterator(), node, template);
