@@ -286,7 +286,7 @@ public class SchemaConfiguration implements ISchemaConfiguration {
 
                                                 }
                                             }
-                                        } 
+                                        }
                                     }
                                 }
                             }
@@ -400,8 +400,15 @@ public class SchemaConfiguration implements ISchemaConfiguration {
         String message = "";
         while (nodeIter.hasNext()) {
             template = nodeIter.next();
-            if (template.getIcFinal())
-                templateProperties.add(template.nodeProperties);
+            if (!isMultipleProperties(template)) {
+                if (template.getIcFinal())
+                    templateProperties.add(template.nodeProperties);
+            } else {
+                if (template.getIcFinal()) {
+                    templateProperties.add(getPropertyName(template)[0]);
+                    templateProperties.add(getPropertyName(template)[1]);
+                }
+            }
         }
 
         for (Iterator<Node> item = transactionData.createdNodes().iterator(); item.hasNext(); ) {
