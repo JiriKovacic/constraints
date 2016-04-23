@@ -1,6 +1,6 @@
 # Integrity constraints for Neo4j
 ## Intro
-The integrity constraints for Neo4j is a prototype implementation of defining a database schema. There are implemented three types of constraints. 
+The integrity constraints for Neo4j is a prototype implementation of defining a database schema as a part of my diploma thesis. There are implemented three types of constraints. 
 
 * **Node property uniqueness**,
     * Single property value *(like email, name or whatever)*, or
